@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NICU 藥物計算機 (依目標劑量計算)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap');
+    body {
+      font-family: 'Inter', 'Noto Sans TC', sans-serif;
+      -webkit-text-size-adjust: 100%;
+    }
+    /* 自訂緊湊輸入框樣式 */
+    .compact-input {
+      padding-top: 0.25rem;
+      padding-bottom: 0.25rem;
+      padding-left: 0.5rem;
+      padding-right: 0.5rem;
+      font-size: 0.875rem; /* 14px text-sm */
+      line-height: 1.25rem;
+      height: 2rem;
+    }
+    .compact-label {
+      font-size: 0.75rem; /* 12px text-xs */
+      font-weight: 600;
+      color: #4b5563;
+      margin-bottom: 0.1rem;
+      white-space: nowrap;
+    }
+    .btn:active { transform: scale(0.98); }
+  </style>
+</head>
+<body class="bg-white text-gray-800 overflow-hidden">
+
+  <div class="max-w-3xl mx-auto p-1"> 
+    
+    <!-- 標題列 -->
+    <div class="flex items-center justify-between mb-2 px-1">
+      <h1 class="text-lg font-bold text-cyan-700 flex items-center gap-2">
+        NICU 計算機
+      </h1>
+      <span class="text-xs text-yellow-800 bg-yellow-100 px-2 py-0.5 rounded border border-yellow-200">
+        ⚠️ 僅供參考，務必驗算
+      </span>
+    </div>
+
+    <!-- 輸入區塊 -->
+    <div id="input-form" class="grid grid-cols-2 sm:grid-cols-3 gap-x-2 gap-y-2 bg-gray-50 p-2 rounded-lg border border-gray-200">
+      
+      <div>
+        <label for="drugSelect" class="compact-label">選擇藥品</label>
+        <select id="drugSelect" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input"></select>
+      </div>
+      
+      <div>
+        <label for="weight" class="compact-label">體重 (kg)</label>
+        <input type="number" id="weight" step="0.01" placeholder="2.5" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
+      </div>
+
+      <div class="sm:col-span-1 col-span-2">
+        <div class="flex justify-between items-center">
+            <label for="targetDose" class="compact-label" id="targetDoseLabel">目標劑量</label>
+            <!-- 修改: 將建議劑量顯示在此處 -->
+            <span id="dose-range-note" class="text-[10px] text-gray-500 font-medium">建議: -</span>
+        </div>
+        <input type="number" id="targetDose" placeholder="mcg/kg/min" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
+      </div>
+
+      <div id="ri-input-container" class="hidden">
+         <label for="sir" class="compact-label">SIR (mg/kg/min)</label>
+         <input type="number" id="sir" placeholder="SIR" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
+      </div>
+
+      <div>
+        <label for="direction" class="compact-label">泡法</label>
+        <select id="direction" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
+          <option value="concentrate">泡濃 (倍)</option>
+          <option value="dilute">泡稀 (倍)</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="factor" class="compact-label">倍數</label>
+        <div class="flex gap-1">
+            <input type="number" id="factor" value="1" step="0.1" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
+            <button id="calculateBtn" class="btn bg-cyan-600 text-white font-bold rounded hover:bg-cyan-700 px-3 text-sm flex items-center justify-center whitespace-nowrap">
+              計算
+            </button>
+        </div>
+      </div>
+      
+    </div>
+    
+    <p id="error-message" class="hidden text-red-500 text-xs mt-1 px-1">請檢查輸入數值。</p>
+
+    <!-- 結果區塊 -->
+    <div id="result" class="mt-2 hidden"></div>
+
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // --- 資料定義 ---
+      const drugs = {
+        Dopamine:               { unitDose: 6,    unit: 'mg',  totalVolume: 100, conversionFactor: 1,    range: [4, 20],       targetUnit: 'mcg/kg/min' },
+        Dobutamine:             { unitDose: 6,    unit: 'mg',  totalVolume: 100, conversionFactor: 1,    range: [4, 20],       targetUnit: 'mcg/kg/min' },
+        Nitroprusside:          { unitDose: 6,    unit: 'mg',  totalVolume: 100, conversionFactor: 1,    range: [0.5, 8],      targetUnit: 'mcg/kg/min' },
+        Dormicum:               { unitDose: 6,    unit: 'mg',  totalVolume: 100, conversionFactor: 1,    range: [1, 10],       targetUnit: 'mcg/kg/min' },
+        'Epinephrine (Bosmin)': { unitDose: 0.6,  unit: 'mg',  totalVolume: 100, conversionFactor: 0.1,  range: [0.02, 0.2],   targetUnit: 'mcg/kg/min' },
+        'Norepinephrine (Levophed)': { unitDose: 0.6, unit: 'mg', totalVolume: 100, conversionFactor: 0.1, range: [0.02, 0.2], targetUnit: 'mcg/kg/min' },
+        Isoproterenol:          { unitDose: 0.6,  unit: 'mg',  totalVolume: 100, conversionFactor: 0.1,  range: [0.1, 1],      targetUnit: 'mcg/kg/min' },
+        Primacor:               { unitDose: 0.6,  unit: 'mg',  totalVolume: 100, conversionFactor: 0.1,  range: [0.25, 0.75],  targetUnit: 'mcg/kg/min' },
+        NTG:                    { unitDose: 0.6,  unit: 'mg',  totalVolume: 100, conversionFactor: 0.1,  range: [0.5, 5],      targetUnit: 'mcg/kg/min' },
+        PGE1:                   { unitDose: 6,    unit: 'mcg', totalVolume: 10,  conversionFactor: 0.01, range: [10, 100],     targetUnit: 'ng/kg/min' },
+        'RI Pump':              { unitDose: 100,  unit: 'U',   totalVolume: 500, conversionFactor: 0.2,  range: [0.1, 0.6],    targetUnit: 'U/kg/hr'  }
+      };
+
+      const drugSelect = document.getElementById('drugSelect');
+      const resultDiv = document.getElementById('result');
+      const errorMessage = document.getElementById('error-message');
+      const riInputContainer = document.getElementById('ri-input-container');
+      const doseRangeNote = document.getElementById('dose-range-note');
+
+      // 初始化
+      for (const name in drugs) {
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        drugSelect.appendChild(opt);
+      }
+      
+      updateUiForSelectedDrug();
+
+      document.getElementById('calculateBtn').addEventListener('click', calculate);
+      drugSelect.addEventListener('change', updateUiForSelectedDrug);
+
+      function updateUiForSelectedDrug() {
+        const selectedDrugName = drugSelect.value;
+        const drug = drugs[selectedDrugName];
+        
+        const unitLabel = drug.targetUnit.replace('mcg', 'ug'); 
+        document.getElementById('targetDoseLabel').textContent = `目標 (${unitLabel})`;
+
+        // 1. 更新建議劑量顯示
+        doseRangeNote.textContent = `建議: ${drug.range[0]}~${drug.range[1]}`;
+
+        if (selectedDrugName === 'RI Pump') {
+          riInputContainer.classList.remove('hidden');
+        } else {
+          riInputContainer.classList.add('hidden');
+        }
+        resultDiv.style.display = 'none';
+        errorMessage.style.display = 'none';
+      }
+
+      function formatValue(value, unit = "") {
+        if (typeof value !== 'number' || isNaN(value)) return "N/A";
+        if (value === 0) return "0" + (unit ? ` ${unit}` : "");
+        let formattedValue;
+        if (Math.abs(value) >= 100) formattedValue = value.toFixed(0);
+        else if (Math.abs(value) >= 10) formattedValue = value.toFixed(1).replace(/\.0$/, "");
+        else if (Math.abs(value) >= 1) formattedValue = value.toPrecision(3);
+        else formattedValue = value.toPrecision(2);
+        return parseFloat(formattedValue).toString() + (unit ? ` ${unit}` : "");
+      }
+
+      // 使用 fallback 方式複製，解決在 iframe/Google Site 中的權限問題
+      function copyTextToClipboard(text, btn) {
+          const textArea = document.createElement("textarea");
+          textArea.value = text;
+          
+          textArea.style.position = 'fixed';
+          textArea.style.left = '-9999px';
+          textArea.style.top = '0';
+          document.body.appendChild(textArea);
+          
+          textArea.focus();
+          textArea.select();
+          
+          try {
+              const successful = document.execCommand('copy');
+              if (successful) {
+                  const originalText = btn.textContent;
+                  btn.textContent = 'OK';
+                  btn.classList.remove('bg-gray-600', 'hover:bg-gray-700');
+                  btn.classList.add('bg-green-600', 'hover:bg-green-700');
+                  setTimeout(() => { 
+                      btn.textContent = originalText; 
+                      btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                      btn.classList.add('bg-gray-600', 'hover:bg-gray-700');
+                  }, 1000);
+              } else {
+                  throw new Error('Copy failed');
+              }
+          } catch (err) {
+              console.error('Fallback copy failed', err);
+              const originalText = btn.textContent;
+              btn.textContent = 'X';
+              btn.classList.add('bg-red-600');
+              setTimeout(() => { 
+                  btn.textContent = originalText; 
+                  btn.classList.remove('bg-red-600');
+              }, 1000);
+          }
+          
+          document.body.removeChild(textArea);
+      }
+
+      function calculate() {
+        const selectedDrugName = drugSelect.value;
+        const drug = drugs[selectedDrugName];
+        const weight = parseFloat(document.getElementById('weight').value);
+        const inputTargetDose = parseFloat(document.getElementById('targetDose').value);
+        const factor = parseFloat(document.getElementById('factor').value);
+        const direction = document.getElementById('direction').value;
+        
+        if (!weight || weight <= 0 || isNaN(inputTargetDose) || inputTargetDose < 0 || isNaN(factor) || factor <=0) {
+          errorMessage.textContent = '請檢查輸入數值。';
+          errorMessage.style.display = 'block';
+          resultDiv.style.display = 'none';
+          return;
+        }
+
+        let sir = 0;
+        if (selectedDrugName === 'RI Pump') {
+            sir = parseFloat(document.getElementById('sir').value);
+            if (isNaN(sir) || sir < 0) {
+              errorMessage.textContent = '請輸入有效 SIR。';
+              errorMessage.style.display = 'block';
+              resultDiv.style.display = 'none';
+              return;
+            }
+        }
+        errorMessage.style.display = 'none';
+
+        // 計算邏輯
+        let doseForCalc = inputTargetDose;
+        let rangeForCalc = [...drug.range];
+        if (drug.targetUnit === 'ng/kg/min') {
+            doseForCalc = inputTargetDose / 1000;
+            rangeForCalc = drug.range.map(r => r / 1000);
+        }
+        const totalDose = drug.unitDose * weight;
+        let volume, scaledConversion;
+        if (direction === "concentrate") {
+          volume = drug.totalVolume / factor;
+          scaledConversion = drug.conversionFactor * factor;
+        } else {
+          volume = drug.totalVolume * factor;
+          scaledConversion = drug.conversionFactor / factor;
+        }
+        const calculatedRate = doseForCalc / scaledConversion;
+        const rangeMinRate = rangeForCalc[0] / scaledConversion;
+        const rangeMaxRate = rangeForCalc[1] / scaledConversion;
+        const doseInRange = inputTargetDose >= drug.range[0] && inputTargetDose <= drug.range[1];
+
+        // 產生複製用的完整文字
+        let fullTextForCopy = "";
+        if (selectedDrugName === 'RI Pump') {
+            const rateUnit = 'ml/hr';
+            fullTextForCopy = `${formatValue(totalDose, drug.unit)} RI in D10W ${formatValue(volume, "ml")} NS/D10W, 1${rateUnit}=${formatValue(scaledConversion, drug.targetUnit)}, Range:${formatValue(rangeMinRate,'')}~${formatValue(rangeMaxRate, rateUnit)}\nRI pump run ${formatValue(calculatedRate, rateUnit)}`;
+        } else {
+            const rateUnit = 'gtt/min';
+            fullTextForCopy = `${formatValue(totalDose, drug.unit)} ${selectedDrugName} in ${formatValue(volume, "mL")} NS/D10W, 1${rateUnit}=${formatValue(scaledConversion * (drug.targetUnit === 'ng/kg/min' ? 1000 : 1), drug.targetUnit)}/gtt, Range:${formatValue(rangeMinRate,'')}~${formatValue(rangeMaxRate, rateUnit)}，扣IV\n${selectedDrugName} pump run ${formatValue(calculatedRate, rateUnit)}`;
+        }
+
+        // 產生結果 HTML
+        resultDiv.style.display = 'block';
+        
+        if (selectedDrugName === 'RI Pump') {
+            const rateUnit = 'ml/hr';
+            const order1 = `${formatValue(totalDose, drug.unit)} RI in D10W ${formatValue(volume, "ml")}`;
+            const orderDetails = `1${rateUnit}=${formatValue(scaledConversion, drug.targetUnit)}`;
+            const order2 = `Run ${formatValue(calculatedRate, rateUnit)}`;
+            
+            const sirRiRatio = (sir * 0.06) / inputTargetDose;
+            const ratioInRange = sirRiRatio >= 3 && sirRiRatio <= 5;
+
+            resultDiv.innerHTML = renderResult(order1, orderDetails, order2, inputTargetDose, doseInRange, drug.targetUnit, ratioInRange, sirRiRatio, 'SIR/RI', 3, 5);
+        } else {
+            const rateUnit = 'gtt/min';
+            const order1 = `${formatValue(totalDose, drug.unit)} ${selectedDrugName} in ${formatValue(volume, "mL")} NS/D10W`;
+            const orderDetails = `1${rateUnit}=${formatValue(scaledConversion * (drug.targetUnit === 'ng/kg/min' ? 1000 : 1), drug.targetUnit)}`;
+            const order2 = `Run ${formatValue(calculatedRate, rateUnit)}`;
+
+            resultDiv.innerHTML = renderResult(order1, orderDetails, order2, inputTargetDose, doseInRange, drug.targetUnit);
+        }
+
+        // 綁定複製按鈕
+        const copyBtn = document.getElementById('copyBtn');
+        if(copyBtn) {
+            copyBtn.setAttribute('data-text', fullTextForCopy);
+            copyBtn.onclick = function() {
+                copyTextToClipboard(this.getAttribute('data-text'), this);
+            };
+        }
+      }
+
+      function renderResult(o1, oDetails, o2, dose, safe, unit, ratioSafe=null, ratio=null, ratioLabel='', rMin=0, rMax=0) {
+        // 2. 優化範圍檢查顯示：使用強烈的紅/綠對比與明確文字
+        const statusClass = safe 
+            ? 'bg-green-100 border-green-300 text-green-900' 
+            : 'bg-red-100 border-red-300 text-red-900';
+        const statusIcon = safe ? '✅' : '❌';
+        const statusText = safe ? '範圍內' : '超出範圍';
+        
+        // 顯示單位，將 mcg 縮寫為 ug 以節省空間
+        const displayUnit = unit ? unit.replace('mcg', 'ug') : '';
+
+        let ratioHtml = '';
+        if (ratio !== null) {
+            const rClass = ratioSafe 
+                ? 'bg-green-100 border-green-300 text-green-900' 
+                : 'bg-red-100 border-red-300 text-red-900';
+            const rIcon = ratioSafe ? '✅' : '❌';
+            ratioHtml = `
+            <div class="flex-1 flex flex-col items-center justify-center px-1 rounded border ${rClass} text-center leading-none py-1">
+                <span class="text-[10px] opacity-80 mb-0.5">${ratioLabel}</span>
+                <span class="text-xs font-bold">${formatValue(ratio, '')} ${rIcon}</span>
+            </div>`;
+        }
+
+        return `
+          <div class="border-t border-gray-300 pt-2 mt-2">
+            <div class="flex gap-2 mb-2">
+                <div class="flex-1 bg-gray-50 border border-gray-200 rounded p-1.5">
+                    <div class="text-xs text-gray-500 font-bold mb-0.5">配藥</div>
+                    <div class="text-sm font-medium leading-tight text-gray-800">${o1}</div>
+                    <div class="text-xs text-gray-400 mt-0.5">${oDetails}</div>
+                </div>
+                <div class="flex-1 bg-cyan-50 border border-cyan-200 rounded p-1.5 flex flex-col justify-center">
+                    <div class="text-xs text-cyan-600 font-bold mb-0.5">執行</div>
+                    <div class="text-base font-bold text-cyan-800 leading-tight">${o2}</div>
+                </div>
+            </div>
+
+            <div class="flex items-stretch gap-2 h-9">
+                <button id="copyBtn" class="bg-gray-600 text-white text-xs font-bold px-3 rounded hover:bg-gray-700 transition-colors shrink-0">
+                    複製
+                </button>
+                
+                <div class="flex-1 flex flex-col items-center justify-center px-1 rounded border ${statusClass} text-center leading-none py-1">
+                    <span class="text-[10px] opacity-80 mb-0.5">劑量: ${formatValue(dose, displayUnit)}</span>
+                    <span class="text-xs font-bold">${statusIcon} ${statusText}</span>
+                </div>
+
+                ${ratioHtml}
+            </div>
+          </div>
+        `;
+      }
+
+    });
+  </script>
+</body>
+</html>
