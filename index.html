@@ -255,35 +255,30 @@
         const rangeMaxRate = rangeForCalc[1] / scaledConversion;
         const doseInRange = inputTargetDose >= drug.range[0] && inputTargetDose <= drug.range[1];
 
-        // 產生複製用的完整文字
-        let fullTextForCopy = "";
-        if (selectedDrugName === 'RI Pump') {
-            const rateUnit = 'ml/hr';
-            fullTextForCopy = `${formatValue(totalDose, drug.unit)} RI in D10W ${formatValue(volume, "ml")} NS/D10W, 1${rateUnit}=${formatValue(scaledConversion, drug.targetUnit)}, Range:${formatValue(rangeMinRate,'')}~${formatValue(rangeMaxRate, rateUnit)}\nRI pump run ${formatValue(calculatedRate, rateUnit)}`;
-        } else {
-            const rateUnit = 'gtt/min';
-            fullTextForCopy = `${formatValue(totalDose, drug.unit)} ${selectedDrugName} in ${formatValue(volume, "mL")} NS/D10W, 1${rateUnit}=${formatValue(scaledConversion * (drug.targetUnit === 'ng/kg/min' ? 1000 : 1), drug.targetUnit)}/gtt, Range:${formatValue(rangeMinRate,'')}~${formatValue(rangeMaxRate, rateUnit)}，扣IV\n${selectedDrugName} pump run ${formatValue(calculatedRate, rateUnit)}`;
-        }
+        // 畫面與複製文字共用同一組字串，避免兩邊各自演化
+        const isRiPump = selectedDrugName === 'RI Pump';
+        const rateUnit = isRiPump ? 'ml/hr' : 'gtt/min';
+        // targetUnit 為 ng/kg/min 的藥品內部以 mcg 計算，顯示時轉回 ng
+        const displayConversion = scaledConversion * (drug.targetUnit === 'ng/kg/min' ? 1000 : 1);
+
+        const order1 = isRiPump
+          ? `${formatValue(totalDose, drug.unit)} RI in D10W ${formatValue(volume, "ml")}`
+          : `${formatValue(totalDose, drug.unit)} ${selectedDrugName} in ${formatValue(volume, "mL")} NS/D10W`;
+        const orderDetails = `1${rateUnit}=${formatValue(displayConversion, drug.targetUnit)}`;
+        const rangeText = `Range:${formatValue(rangeMinRate, '')}~${formatValue(rangeMaxRate, rateUnit)}`;
+        const order2 = `Run ${formatValue(calculatedRate, rateUnit)}`;
+
+        const fullTextForCopy = `${order1}, ${orderDetails}, ${rangeText}${isRiPump ? '' : '，扣IV'}\n${isRiPump ? 'RI' : selectedDrugName} pump run ${formatValue(calculatedRate, rateUnit)}`;
 
         // 產生結果 HTML
         resultDiv.style.display = 'block';
-        
-        if (selectedDrugName === 'RI Pump') {
-            const rateUnit = 'ml/hr';
-            const order1 = `${formatValue(totalDose, drug.unit)} RI in D10W ${formatValue(volume, "ml")}`;
-            const orderDetails = `1${rateUnit}=${formatValue(scaledConversion, drug.targetUnit)}`;
-            const order2 = `Run ${formatValue(calculatedRate, rateUnit)}`;
-            
+
+        if (isRiPump) {
             const sirRiRatio = (sir * 0.06) / inputTargetDose;
             const ratioInRange = sirRiRatio >= 3 && sirRiRatio <= 5;
 
-            resultDiv.innerHTML = renderResult(order1, orderDetails, order2, inputTargetDose, doseInRange, drug.targetUnit, ratioInRange, sirRiRatio, 'SIR/RI', 3, 5);
+            resultDiv.innerHTML = renderResult(order1, orderDetails, order2, inputTargetDose, doseInRange, drug.targetUnit, ratioInRange, sirRiRatio, 'SIR/RI');
         } else {
-            const rateUnit = 'gtt/min';
-            const order1 = `${formatValue(totalDose, drug.unit)} ${selectedDrugName} in ${formatValue(volume, "mL")} NS/D10W`;
-            const orderDetails = `1${rateUnit}=${formatValue(scaledConversion * (drug.targetUnit === 'ng/kg/min' ? 1000 : 1), drug.targetUnit)}`;
-            const order2 = `Run ${formatValue(calculatedRate, rateUnit)}`;
-
             resultDiv.innerHTML = renderResult(order1, orderDetails, order2, inputTargetDose, doseInRange, drug.targetUnit);
         }
 
@@ -297,7 +292,7 @@
         }
       }
 
-      function renderResult(o1, oDetails, o2, dose, safe, unit, ratioSafe=null, ratio=null, ratioLabel='', rMin=0, rMax=0) {
+      function renderResult(o1, oDetails, o2, dose, safe, unit, ratioSafe=null, ratio=null, ratioLabel='') {
         // 2. 優化範圍檢查顯示：使用強烈的紅/綠對比與明確文字
         const statusClass = safe 
             ? 'bg-green-100 border-green-300 text-green-900' 
