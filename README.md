@@ -97,13 +97,35 @@ Aminophylline 與 Caffeine 另顯示有效血中濃度與 toxic level。
 原表兩處結構缺陷已標記於畫面：Systemic candidiasis 的 Day 1 與 Daily therapy 是合併儲存格；
 Relapse 列缺 Daily therapy 與 duration，因此只提供 Day 1。
 
+## 覆核設計
+
+這個工具的重點不是算出數字，是**讓醫師能驗算**。每次結果都可以展開「計算過程」，
+每一行都是獨立可驗的一步：
+
+```
+有效體重   當下體重未超過出生體重，採出生體重      1500 g = 1.5 kg
+查表欄位   體重帶 × 日齡帶                    1200~2000 g ／ Age 0~7 days
+本表值     原文「25 q12h」                   25 mg/kg/dose q12h
+每劑       25 mg/kg × 1.5 kg                37.5 mg q12h
+每日總量   37.5 mg × (24 ÷ 12 小時) = 2 劑/日  75 mg/day（50 mg/kg/day）
+```
+
+拒答時同樣列出計算過程，讓人看得出是走到哪一步、為什麼停下來。
+interval 超過 24 小時者（q36h／q48h）標示為「平均每日」而非每日總量。
+
+「給藥指引」另外收合呈現，只放來源文件明載的中性給藥事實（稀釋、輸注時間、
+途徑限制、已知不良反應），資料在 `data/abx-admin.js`，與程式產生的劑量資料分開。
+
 ## 開發
 
 無 build step，Tailwind 走 CDN，直接用瀏覽器開啟 `index.html` 即可。
+介面邏輯一律放在 `ui/`，**HTML 內不得有 inline script**（`tests/html-scripts.test.mjs` 把關）。
 
 ```
-index.html          四個分頁的 UI 與滴速計算邏輯
+index.html          只有骨架與版面，不含程式邏輯
+ui/                 各分頁的介面邏輯（drip / abx / misc / flu）
 data/abx-data.js    抗生素劑量查詢資料（程式產生，請勿手改）
+data/abx-admin.js   抗生素給藥指引（人工整理）
 data/misc-data.js   Surfactant／AOP／PDA 資料
 data/flu-data.js    Fluconazole 資料
 lib/abx-logic.js    抗生素選格／換算／覆核
@@ -114,16 +136,17 @@ tests/              node 原生執行，無相依套件
 
 顯示的數值一律四捨五入至**小數第 2 位**（例：1.25 mL/kg × 1.5 kg = 1.875 → 顯示 1.88 mL）。
 
-測試（共 196 項）：
+測試（共 218 項）：
 
 ```bash
 node tests/abx.test.mjs       # 抗生素資料 + 選格 + 覆核（50）
-node tests/abx-ui.test.mjs    # 抗生素分頁端到端（18）
+node tests/abx-ui.test.mjs    # 抗生素分頁端到端＋計算過程（28）
 node tests/misc.test.mjs      # 其他藥物資料 + 換算（30）
 node tests/misc-ui.test.mjs   # 其他藥物分頁端到端（16）
 node tests/flu.test.mjs       # Fluconazole 資料 + 換算 + 腎調整（48）
 node tests/flu-ui.test.mjs    # Fluconazole 分頁端到端（22）
-node tests/wiring.test.mjs    # DOM 接線靜態檢查（12）
+node tests/wiring.test.mjs    # DOM 接線靜態檢查（8）
+node tests/html-scripts.test.mjs # 腳本外置與可解析性（16）
 ```
 
 ## 部署

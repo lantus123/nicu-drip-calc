@@ -1,8 +1,8 @@
 // 端到端：把 index.html 的抗生素分頁腳本跑在最小 DOM 上，檢查畫面實際輸出的文字
 import fs from 'node:fs'; import vm from 'node:vm'; import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
-const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
-const code = html.split('    // ───────── 抗生素劑量分頁 ─────────')[1].split('\n  </script>')[0];
+const html = fs.readFileSync(new URL('../ui/abx.js', import.meta.url), 'utf8');
+const code = html;
 
 const els = new Map(); const docHandlers = {};
 function makeEl(id) {
@@ -28,6 +28,7 @@ globalThis.document = document;
 globalThis.window = globalThis;
 globalThis.ABX_DATA = require(new URL('../data/abx-data.js', import.meta.url).pathname);
 globalThis.AbxLogic = require(new URL('../lib/abx-logic.js', import.meta.url).pathname);
+globalThis.ABX_ADMIN = require(new URL('../data/abx-admin.js', import.meta.url).pathname);
 vm.runInThisContext('(function(){' + code + '})()');
 docHandlers.DOMContentLoaded();
 
@@ -96,6 +97,26 @@ has('Pip/tazo 導回 Piperacillin',
   run({ drug: 'Piperacillin/tazobactam', bw: 2500, days: 10 }), 'Piperacillin');
 has('原文一併顯示可回溯',
   run({ drug: 'Cefotaxime (Claforan)', variant: 'meningitis', bw: 2500, days: 3 }), '原文：100 q12h');
+
+// ── 計算過程與給藥指引（2026-09-23 新增）──────────────
+has('計算過程逐步列出，每行可獨立驗算',
+  run({ drug: 'Cefazolin', bw: 1500, cw: 1420, days: 3 }),
+  '計算過程', '有效體重', '1500 g = 1.5 kg', '查表欄位', '本表值', '原文「25 q12h」',
+  '25 mg/kg × 1.5 kg', '37.5 mg q12h');
+has('每日總量一併算出', text('abxResult'),
+  '每日總量', '24 ÷ 12 小時', '2 劑/日', '75 mg/day', '50 mg/kg/day');
+has('體重來源在計算過程中說明', text('abxResult'), '當下體重未超過出生體重');
+has('採當下體重時也說明', run({ drug: 'Cefazolin', bw: 1000, cw: 1300, days: 3 }), '當下體重已超過出生體重', '1300 g = 1.3 kg');
+has('q48h 標為平均每日', run({ drug: 'Amikacin', bw: 1000, days: 3 }), '平均每日', '24 ÷ 48 小時');
+has('拒答時也顯示走到哪一步', run({ drug: 'Cefazolin', bw: 1000, days: 40 }), '計算過程', '查表欄位', '超過 4 週無建議劑量');
+has('給藥指引：Penicillin G 快速輸注警告',
+  run({ drug: 'Penicillin G', variant: 'sepsis', bw: 2000, days: 3 }), '給藥指引', 'IVD > 30 分鐘', '心律不整');
+has('給藥指引：Teicoplanin 不可推注',
+  run({ drug: 'Teicoplanin (Targocid)', bw: 2500, days: 10 }), '最高濃度 4 mg/mL', '不可推注');
+has('給藥指引：Metronidazole 鈉含量',
+  run({ drug: 'Metronidazole', bw: 2500, days: 10 }), '13.5 mEq Sodium');
+has('沒有指引資料的藥不顯示該區塊',
+  run({ drug: 'Cefepime', bw: 2500, days: 3 }).includes('給藥指引') ? 'HAS' : 'NONE', 'NONE');
 
 console.log(`\n通過 ${pass} ／ 失敗 ${fail}`);
 process.exit(fail ? 1 : 0);
