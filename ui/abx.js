@@ -105,7 +105,7 @@
     var per = pd.min === pd.max ? fmt(pd.min) : fmt(pd.min) + '~' + fmt(pd.max);
     var daily = dt
       ? '<div class="text-sm text-cyan-700 mt-1">' + (dt.averaged ? '平均每日' : '每日總量') + ' '
-        + (dt.min === dt.max ? fmt(dt.min) : fmt(dt.min) + '~' + fmt(dt.max)) + ' ' + esc(res.unit)
+        + (dt.min === dt.max ? fmt(dt.min) : fmt(dt.min) + '~' + fmt(dt.max)) + ' ' + esc(res.unit) + '/day'
         + '（' + (dt.perKgMin === dt.perKgMax ? fmt(dt.perKgMin) : fmt(dt.perKgMin) + '~' + fmt(dt.perKgMax))
         + ' ' + esc(res.unit) + '/kg/day）</div>' : '';
 
