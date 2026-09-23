@@ -6,6 +6,7 @@
 1. **點滴滴速** — 依目標劑量反推 pump 滴速
 2. **抗生素劑量** — 依體重／日齡查建議劑量，並覆核欲開立的醫囑
 3. **其他藥物** — Surfactant／AOP／PDA 依體重換算劑量，並覆核
+4. **Fluconazole** — 治療／預防／依適應症三種用途，含腎功能調整與輸注限制
 
 > ⚠ 本工具僅供院內臨床人員輔助計算，**非通用臨床指引**，下醫囑前務必人工驗算。
 > 頁面設 `noindex`，不希望被搜尋引擎索引。
@@ -74,29 +75,55 @@
 Aminophylline 與 Caffeine 另顯示有效血中濃度與 toxic level。
 依裁決 6，**不收錄 Indomethacin**（院內無藥），並有測試把關。
 
+## 分頁四：Fluconazole
+
+三種用途：
+
+| 用途 | 劑量 | interval |
+|---|---|---|
+| 治療（早產兒） | loading 12~25、maintenance 12 mg/kg/dose | 依 GA × 日齡：GA <30 週以 14 天為界、GA ≥30 週以 7 天為界，q48h／q24h |
+| 預防 | 3 mg/kg/dose | Twice weekly，IVD 60 分鐘 |
+| 依適應症 | Day 1 與 daily therapy 依適應症 | QD |
+
+另外計算：
+
+- **腎功能調整**：填入 CCr，< 50 時自動給 50% 並標示
+- **輸注限制**：依 2 mg/mL 算稀釋容積，並取「至少 2 小時」與「最高 200 mg/hr」兩者中較長者為最短輸注時間
+- **預防劑量無條件進位至整數**（1.1 kg → 3.3 mg → 4 mg）
+
+⚠ **GA 分界的判讀**：來源文件原文為「≦GA29wk」與「＞GA30wk」，字面上 29~30 週之間沒有規則。
+本工具以 **GA 30 週**為分界銜接（GA <30 走前者、≥30 走後者），並在畫面上標示此判讀。
+
+原表兩處結構缺陷已標記於畫面：Systemic candidiasis 的 Day 1 與 Daily therapy 是合併儲存格；
+Relapse 列缺 Daily therapy 與 duration，因此只提供 Day 1。
+
 ## 開發
 
 無 build step，Tailwind 走 CDN，直接用瀏覽器開啟 `index.html` 即可。
 
 ```
-index.html          三個分頁的 UI 與滴速計算邏輯
+index.html          四個分頁的 UI 與滴速計算邏輯
 data/abx-data.js    抗生素劑量查詢資料（程式產生，請勿手改）
 data/misc-data.js   Surfactant／AOP／PDA 資料
+data/flu-data.js    Fluconazole 資料
 lib/abx-logic.js    抗生素選格／換算／覆核
 lib/misc-logic.js   其他藥物換算／覆核
+lib/flu-logic.js    Fluconazole 換算／腎功能調整／輸注限制／覆核
 tests/              node 原生執行，無相依套件
 ```
 
 顯示的數值一律四捨五入至**小數第 2 位**（例：1.25 mL/kg × 1.5 kg = 1.875 → 顯示 1.88 mL）。
 
-測試（共 124 項）：
+測試（共 196 項）：
 
 ```bash
 node tests/abx.test.mjs       # 抗生素資料 + 選格 + 覆核（50）
 node tests/abx-ui.test.mjs    # 抗生素分頁端到端（18）
 node tests/misc.test.mjs      # 其他藥物資料 + 換算（30）
 node tests/misc-ui.test.mjs   # 其他藥物分頁端到端（16）
-node tests/wiring.test.mjs    # DOM 接線靜態檢查（10）
+node tests/flu.test.mjs       # Fluconazole 資料 + 換算 + 腎調整（48）
+node tests/flu-ui.test.mjs    # Fluconazole 分頁端到端（22）
+node tests/wiring.test.mjs    # DOM 接線靜態檢查（12）
 ```
 
 ## 部署
