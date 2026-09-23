@@ -1,8 +1,8 @@
 // 端到端：把 index.html 的「其他藥物」分頁腳本跑在最小 DOM 上，檢查畫面實際輸出的文字
 import fs from 'node:fs'; import vm from 'node:vm'; import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
-const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
-const code = html.split('    // ───────── Surfactant / AOP / PDA 分頁 ─────────')[1].split('\n  </script>')[0];
+const html = fs.readFileSync(new URL('../ui/misc.js', import.meta.url), 'utf8');
+const code = html;
 
 const els = new Map(); const docHandlers = {};
 function makeEl(id) {

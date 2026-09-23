@@ -13,50 +13,51 @@
       font-family: 'Inter', 'Noto Sans TC', sans-serif;
       -webkit-text-size-adjust: 100%;
     }
-    /* 自訂緊湊輸入框樣式 */
+    /* 輸入欄位：整頁版面，以可讀與好按為準（行動裝置 16px 避免 iOS 自動放大） */
     .compact-input {
-      padding-top: 0.25rem;
-      padding-bottom: 0.25rem;
-      padding-left: 0.5rem;
-      padding-right: 0.5rem;
-      font-size: 0.875rem; /* 14px text-sm */
-      line-height: 1.25rem;
-      height: 2rem;
+      padding: 0.5rem 0.75rem;
+      font-size: 1rem;
+      line-height: 1.5rem;
+      height: 2.75rem;
     }
     .compact-label {
-      font-size: 0.75rem; /* 12px text-xs */
+      font-size: 0.875rem;
       font-weight: 600;
-      color: #4b5563;
-      margin-bottom: 0.1rem;
-      white-space: nowrap;
+      color: #374151;
+      margin-bottom: 0.25rem;
+      display: block;
     }
     .btn:active { transform: scale(0.98); }
+    /* 計算過程表格：等寬數字讓上下對齊，便於逐行驗算 */
+    .steps { font-variant-numeric: tabular-nums; }
   </style>
 </head>
 <body class="bg-white text-gray-800">
 
-  <div class="max-w-3xl mx-auto p-1"> 
+  <div class="max-w-4xl mx-auto px-4 py-6 sm:px-6"> 
     
     <!-- 標題列 -->
-    <div class="flex items-center justify-between mb-2 px-1">
-      <h1 class="text-lg font-bold text-cyan-700 flex items-center gap-2">
-        NICU 計算機
-      </h1>
-      <span class="text-xs text-yellow-800 bg-yellow-100 px-2 py-0.5 rounded border border-yellow-200">
-        ⚠️ 僅供參考，務必驗算
+    <header class="mb-4 flex flex-wrap items-baseline justify-between gap-2 border-b border-gray-200 pb-3">
+      <div>
+        <h1 class="text-2xl font-bold text-cyan-700">NICU 計算機</h1>
+        <p class="mt-1 text-sm text-gray-500">馬偕紀念醫院新生兒科　劑量計算與醫囑覆核</p>
+      </div>
+      <span class="rounded border border-yellow-300 bg-yellow-50 px-3 py-1.5 text-sm font-medium text-yellow-900">
+        ⚠️ 僅供參考，下醫囑前務必自行驗算
       </span>
-    </div>
+    </header>
 
     <!-- 分頁列 -->
-    <div class="flex gap-1 mb-2 px-1">
-      <button data-tab="drip" class="btn text-xs font-bold px-3 py-1 rounded bg-cyan-600 text-white">點滴滴速</button>
-      <button data-tab="abx" class="btn text-xs font-bold px-3 py-1 rounded bg-gray-100 text-gray-600">抗生素劑量</button>
-      <button data-tab="misc" class="btn text-xs font-bold px-3 py-1 rounded bg-gray-100 text-gray-600">其他藥物</button>
-    </div>
+    <nav class="flex flex-wrap gap-2 mb-4">
+      <button data-tab="drip" class="btn rounded-lg px-4 py-2 text-sm font-bold bg-cyan-600 text-white">點滴滴速</button>
+      <button data-tab="abx" class="btn rounded-lg px-4 py-2 text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200">抗生素劑量</button>
+      <button data-tab="misc" class="btn rounded-lg px-4 py-2 text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200">其他藥物</button>
+      <button data-tab="flu" class="btn rounded-lg px-4 py-2 text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200">Fluconazole</button>
+    </nav>
 
     <div id="panel-drip">
     <!-- 輸入區塊 -->
-    <div id="input-form" class="grid grid-cols-2 sm:grid-cols-3 gap-x-2 gap-y-2 bg-gray-50 p-2 rounded-lg border border-gray-200">
+    <div id="input-form" class="grid grid-cols-2 sm:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
       
       <div>
         <label for="drugSelect" class="compact-label">選擇藥品</label>
@@ -105,12 +106,12 @@
     <p id="error-message" class="hidden text-red-500 text-xs mt-1 px-1">請檢查輸入數值。</p>
 
     <!-- 結果區塊 -->
-    <div id="result" class="mt-2 hidden"></div>
+    <div id="result" class="mt-4 hidden"></div>
     </div><!-- /panel-drip -->
 
     <!-- ───────── 抗生素劑量分頁 ───────── -->
     <div id="panel-abx" class="hidden">
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-x-2 gap-y-2 bg-gray-50 p-2 rounded-lg border border-gray-200">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
         <div>
           <label for="abxBirthWeight" class="compact-label">出生體重 (g)</label>
           <input type="number" id="abxBirthWeight" step="1" placeholder="1500" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
@@ -145,11 +146,11 @@
         </div>
       </div>
 
-      <div id="abxResult" class="mt-2 hidden"></div>
+      <div id="abxResult" class="mt-4 hidden"></div>
 
       <!-- 覆核區：醫師輸入打算開的醫囑，系統只負責比對 -->
-      <div id="abxReviewBox" class="mt-2 hidden">
-        <div class="flex items-end gap-2 bg-slate-50 border border-slate-200 rounded-lg p-2">
+      <div id="abxReviewBox" class="mt-4 hidden">
+        <div class="flex flex-wrap items-end gap-3 bg-slate-50 border border-slate-200 rounded-xl p-4">
           <div class="flex-1">
             <label for="abxOrderedDose" class="compact-label">覆核：我打算開每劑</label>
             <input type="number" id="abxOrderedDose" step="0.1" placeholder="數值" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
@@ -164,13 +165,13 @@
           </div>
           <button id="abxReviewBtn" class="btn bg-slate-600 text-white font-bold rounded hover:bg-slate-700 px-3 text-sm h-8 whitespace-nowrap">覆核</button>
         </div>
-        <div id="abxReviewResult" class="mt-2 hidden"></div>
+        <div id="abxReviewResult" class="mt-4 hidden"></div>
       </div>
     </div>
 
     <!-- ───────── Surfactant / AOP / PDA ───────── -->
     <div id="panel-misc" class="hidden">
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-x-2 gap-y-2 bg-gray-50 p-2 rounded-lg border border-gray-200">
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
         <div>
           <label for="miscWeight" class="compact-label">體重 (g)</label>
           <input type="number" id="miscWeight" step="1" placeholder="1500" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
@@ -184,10 +185,10 @@
         </div>
       </div>
 
-      <div id="miscResult" class="mt-2 hidden"></div>
+      <div id="miscResult" class="mt-4 hidden"></div>
 
-      <div id="miscReviewBox" class="mt-2 hidden">
-        <div class="flex items-end gap-2 bg-slate-50 border border-slate-200 rounded-lg p-2">
+      <div id="miscReviewBox" class="mt-4 hidden">
+        <div class="flex flex-wrap items-end gap-3 bg-slate-50 border border-slate-200 rounded-xl p-4">
           <div class="flex-1">
             <label for="miscReviewRow" class="compact-label">覆核哪一項</label>
             <select id="miscReviewRow" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input"></select>
@@ -198,544 +199,85 @@
           </div>
           <button id="miscReviewBtn" class="btn bg-slate-600 text-white font-bold rounded hover:bg-slate-700 px-3 text-sm h-8 whitespace-nowrap">覆核</button>
         </div>
-        <div id="miscReviewResult" class="mt-2 hidden"></div>
+        <div id="miscReviewResult" class="mt-4 hidden"></div>
       </div>
     </div>
 
-    <footer class="mt-3 px-1 text-[10px] text-gray-400 leading-snug border-t border-gray-200 pt-1.5">
+    <!-- ───────── Fluconazole ───────── -->
+    <div id="panel-flu" class="hidden">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
+        <div class="col-span-2 sm:col-span-1">
+          <label for="fluMode" class="compact-label">用途</label>
+          <select id="fluMode" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
+            <option value="treatment">治療（早產兒）</option>
+            <option value="prophylaxis">預防</option>
+            <option value="indication">依適應症</option>
+          </select>
+        </div>
+        <div>
+          <label for="fluWeight" class="compact-label">體重 (g)</label>
+          <input type="number" id="fluWeight" step="1" placeholder="1000" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
+        </div>
+        <div id="fluGaWrap">
+          <label for="fluGa" class="compact-label">出生 GA (週)</label>
+          <input type="number" id="fluGa" step="0.1" placeholder="28" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
+        </div>
+        <div id="fluPnaWrap">
+          <label for="fluPna" class="compact-label">日齡 (天)</label>
+          <input type="number" id="fluPna" step="1" placeholder="10" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
+        </div>
+        <div id="fluIndicationWrap" class="hidden col-span-2">
+          <label for="fluIndication" class="compact-label">適應症</label>
+          <select id="fluIndication" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input"></select>
+        </div>
+        <div>
+          <label for="fluCcr" class="compact-label">CCr（選填）</label>
+          <input type="number" id="fluCcr" step="1" placeholder="—" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
+        </div>
+        <div class="flex items-end">
+          <button id="fluCalcBtn" class="btn bg-cyan-600 text-white font-bold rounded hover:bg-cyan-700 px-3 text-sm h-8 w-full">查劑量</button>
+        </div>
+      </div>
+
+      <div id="fluResult" class="mt-4 hidden"></div>
+
+      <div id="fluReviewBox" class="mt-4 hidden">
+        <div class="flex flex-wrap items-end gap-3 bg-slate-50 border border-slate-200 rounded-xl p-4">
+          <div class="flex-1">
+            <label for="fluReviewRow" class="compact-label">覆核哪一項</label>
+            <select id="fluReviewRow" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input"></select>
+          </div>
+          <div class="w-28">
+            <label for="fluOrderedDose" class="compact-label">我打算開每劑</label>
+            <input type="number" id="fluOrderedDose" step="0.1" placeholder="mg" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
+          </div>
+          <button id="fluReviewBtn" class="btn bg-slate-600 text-white font-bold rounded hover:bg-slate-700 px-3 text-sm h-8 whitespace-nowrap">覆核</button>
+        </div>
+        <div id="fluReviewResult" class="mt-4 hidden"></div>
+      </div>
+    </div>
+
+    <footer class="mt-8 text-xs text-gray-500 leading-relaxed border-t border-gray-200 pt-4">
       馬偕紀念醫院新生兒科內部使用，非通用臨床指引；務必自行驗算後再開立醫囑。<br>
       抗生素劑量資料版本 <span id="abxDataVersion"></span>，取自 <span id="abxSource"></span>。<br>
-      Surfactant／AOP／PDA 資料版本 <span id="miscDataVersion"></span>。
+      Surfactant／AOP／PDA 資料版本 <span id="miscDataVersion"></span>，Fluconazole 資料版本 <span id="fluDataVersion"></span>。
     </footer>
   </div>
 
   <script src="data/abx-data.js"></script>
+  <script src="data/abx-admin.js"></script>
   <script src="lib/abx-logic.js"></script>
   <script src="data/misc-data.js"></script>
   <script src="lib/misc-logic.js"></script>
+  <script src="data/flu-data.js"></script>
+  <script src="lib/flu-logic.js"></script>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      // --- 資料定義 ---
-      const drugs = {
-        Dopamine:               { unitDose: 6,    unit: 'mg',  totalVolume: 100, conversionFactor: 1,    range: [4, 20],       targetUnit: 'mcg/kg/min' },
-        Dobutamine:             { unitDose: 6,    unit: 'mg',  totalVolume: 100, conversionFactor: 1,    range: [4, 20],       targetUnit: 'mcg/kg/min' },
-        Nitroprusside:          { unitDose: 6,    unit: 'mg',  totalVolume: 100, conversionFactor: 1,    range: [0.5, 8],      targetUnit: 'mcg/kg/min' },
-        Dormicum:               { unitDose: 6,    unit: 'mg',  totalVolume: 100, conversionFactor: 1,    range: [1, 10],       targetUnit: 'mcg/kg/min' },
-        'Epinephrine (Bosmin)': { unitDose: 0.6,  unit: 'mg',  totalVolume: 100, conversionFactor: 0.1,  range: [0.02, 0.2],   targetUnit: 'mcg/kg/min' },
-        'Norepinephrine (Levophed)': { unitDose: 0.6, unit: 'mg', totalVolume: 100, conversionFactor: 0.1, range: [0.02, 0.2], targetUnit: 'mcg/kg/min' },
-        Isoproterenol:          { unitDose: 0.6,  unit: 'mg',  totalVolume: 100, conversionFactor: 0.1,  range: [0.1, 1],      targetUnit: 'mcg/kg/min' },
-        Primacor:               { unitDose: 0.6,  unit: 'mg',  totalVolume: 100, conversionFactor: 0.1,  range: [0.25, 0.75],  targetUnit: 'mcg/kg/min' },
-        NTG:                    { unitDose: 0.6,  unit: 'mg',  totalVolume: 100, conversionFactor: 0.1,  range: [0.5, 5],      targetUnit: 'mcg/kg/min' },
-        PGE1:                   { unitDose: 6,    unit: 'mcg', totalVolume: 10,  conversionFactor: 0.01, range: [10, 100],     targetUnit: 'ng/kg/min' },
-        'RI Pump':              { unitDose: 100,  unit: 'U',   totalVolume: 500, conversionFactor: 0.2,  range: [0.1, 0.6],    targetUnit: 'U/kg/hr'  }
-      };
+  <script src="ui/drip.js"></script>
 
-      const drugSelect = document.getElementById('drugSelect');
-      const resultDiv = document.getElementById('result');
-      const errorMessage = document.getElementById('error-message');
-      const riInputContainer = document.getElementById('ri-input-container');
-      const doseRangeNote = document.getElementById('dose-range-note');
+  <script src="ui/abx.js"></script>
 
-      // 初始化
-      for (const name in drugs) {
-        const opt = document.createElement('option');
-        opt.value = name;
-        opt.textContent = name;
-        drugSelect.appendChild(opt);
-      }
-      
-      updateUiForSelectedDrug();
+  <script src="ui/misc.js"></script>
 
-      document.getElementById('calculateBtn').addEventListener('click', calculate);
-      drugSelect.addEventListener('change', updateUiForSelectedDrug);
-
-      function updateUiForSelectedDrug() {
-        const selectedDrugName = drugSelect.value;
-        const drug = drugs[selectedDrugName];
-        
-        const unitLabel = drug.targetUnit.replace('mcg', 'ug'); 
-        document.getElementById('targetDoseLabel').textContent = `目標 (${unitLabel})`;
-
-        // 1. 更新建議劑量顯示
-        doseRangeNote.textContent = `建議: ${drug.range[0]}~${drug.range[1]}`;
-
-        if (selectedDrugName === 'RI Pump') {
-          riInputContainer.classList.remove('hidden');
-        } else {
-          riInputContainer.classList.add('hidden');
-        }
-        resultDiv.style.display = 'none';
-        errorMessage.style.display = 'none';
-      }
-
-      function formatValue(value, unit = "") {
-        if (typeof value !== 'number' || isNaN(value)) return "N/A";
-        if (value === 0) return "0" + (unit ? ` ${unit}` : "");
-        let formattedValue;
-        if (Math.abs(value) >= 100) formattedValue = value.toFixed(0);
-        else if (Math.abs(value) >= 10) formattedValue = value.toFixed(1).replace(/\.0$/, "");
-        else if (Math.abs(value) >= 1) formattedValue = value.toPrecision(3);
-        else formattedValue = value.toPrecision(2);
-        return parseFloat(formattedValue).toString() + (unit ? ` ${unit}` : "");
-      }
-
-      // 使用 fallback 方式複製，解決在 iframe/Google Site 中的權限問題
-      function copyTextToClipboard(text, btn) {
-          const textArea = document.createElement("textarea");
-          textArea.value = text;
-          
-          textArea.style.position = 'fixed';
-          textArea.style.left = '-9999px';
-          textArea.style.top = '0';
-          document.body.appendChild(textArea);
-          
-          textArea.focus();
-          textArea.select();
-          
-          try {
-              const successful = document.execCommand('copy');
-              if (successful) {
-                  const originalText = btn.textContent;
-                  btn.textContent = 'OK';
-                  btn.classList.remove('bg-gray-600', 'hover:bg-gray-700');
-                  btn.classList.add('bg-green-600', 'hover:bg-green-700');
-                  setTimeout(() => { 
-                      btn.textContent = originalText; 
-                      btn.classList.remove('bg-green-600', 'hover:bg-green-700');
-                      btn.classList.add('bg-gray-600', 'hover:bg-gray-700');
-                  }, 1000);
-              } else {
-                  throw new Error('Copy failed');
-              }
-          } catch (err) {
-              console.error('Fallback copy failed', err);
-              const originalText = btn.textContent;
-              btn.textContent = 'X';
-              btn.classList.add('bg-red-600');
-              setTimeout(() => { 
-                  btn.textContent = originalText; 
-                  btn.classList.remove('bg-red-600');
-              }, 1000);
-          }
-          
-          document.body.removeChild(textArea);
-      }
-
-      function calculate() {
-        const selectedDrugName = drugSelect.value;
-        const drug = drugs[selectedDrugName];
-        const weight = parseFloat(document.getElementById('weight').value);
-        const inputTargetDose = parseFloat(document.getElementById('targetDose').value);
-        const factor = parseFloat(document.getElementById('factor').value);
-        const direction = document.getElementById('direction').value;
-        
-        if (!weight || weight <= 0 || isNaN(inputTargetDose) || inputTargetDose < 0 || isNaN(factor) || factor <=0) {
-          errorMessage.textContent = '請檢查輸入數值。';
-          errorMessage.style.display = 'block';
-          resultDiv.style.display = 'none';
-          return;
-        }
-
-        let sir = 0;
-        if (selectedDrugName === 'RI Pump') {
-            sir = parseFloat(document.getElementById('sir').value);
-            if (isNaN(sir) || sir < 0) {
-              errorMessage.textContent = '請輸入有效 SIR。';
-              errorMessage.style.display = 'block';
-              resultDiv.style.display = 'none';
-              return;
-            }
-        }
-        errorMessage.style.display = 'none';
-
-        // 計算邏輯
-        let doseForCalc = inputTargetDose;
-        let rangeForCalc = [...drug.range];
-        if (drug.targetUnit === 'ng/kg/min') {
-            doseForCalc = inputTargetDose / 1000;
-            rangeForCalc = drug.range.map(r => r / 1000);
-        }
-        const totalDose = drug.unitDose * weight;
-        let volume, scaledConversion;
-        if (direction === "concentrate") {
-          volume = drug.totalVolume / factor;
-          scaledConversion = drug.conversionFactor * factor;
-        } else {
-          volume = drug.totalVolume * factor;
-          scaledConversion = drug.conversionFactor / factor;
-        }
-        const calculatedRate = doseForCalc / scaledConversion;
-        const rangeMinRate = rangeForCalc[0] / scaledConversion;
-        const rangeMaxRate = rangeForCalc[1] / scaledConversion;
-        const doseInRange = inputTargetDose >= drug.range[0] && inputTargetDose <= drug.range[1];
-
-        // 畫面與複製文字共用同一組字串，避免兩邊各自演化
-        const isRiPump = selectedDrugName === 'RI Pump';
-        const rateUnit = isRiPump ? 'ml/hr' : 'gtt/min';
-        // targetUnit 為 ng/kg/min 的藥品內部以 mcg 計算，顯示時轉回 ng
-        const displayConversion = scaledConversion * (drug.targetUnit === 'ng/kg/min' ? 1000 : 1);
-
-        const order1 = isRiPump
-          ? `${formatValue(totalDose, drug.unit)} RI in D10W ${formatValue(volume, "ml")}`
-          : `${formatValue(totalDose, drug.unit)} ${selectedDrugName} in ${formatValue(volume, "mL")} NS/D10W`;
-        const orderDetails = `1${rateUnit}=${formatValue(displayConversion, drug.targetUnit)}`;
-        const rangeText = `Range:${formatValue(rangeMinRate, '')}~${formatValue(rangeMaxRate, rateUnit)}`;
-        const order2 = `Run ${formatValue(calculatedRate, rateUnit)}`;
-
-        const fullTextForCopy = `${order1}, ${orderDetails}, ${rangeText}${isRiPump ? '' : '，扣IV'}\n${isRiPump ? 'RI' : selectedDrugName} pump run ${formatValue(calculatedRate, rateUnit)}`;
-
-        // 產生結果 HTML
-        resultDiv.style.display = 'block';
-
-        if (isRiPump) {
-            const sirRiRatio = (sir * 0.06) / inputTargetDose;
-            const ratioInRange = sirRiRatio >= 3 && sirRiRatio <= 5;
-
-            resultDiv.innerHTML = renderResult(order1, orderDetails, order2, inputTargetDose, doseInRange, drug.targetUnit, ratioInRange, sirRiRatio, 'SIR/RI');
-        } else {
-            resultDiv.innerHTML = renderResult(order1, orderDetails, order2, inputTargetDose, doseInRange, drug.targetUnit);
-        }
-
-        // 綁定複製按鈕
-        const copyBtn = document.getElementById('copyBtn');
-        if(copyBtn) {
-            copyBtn.setAttribute('data-text', fullTextForCopy);
-            copyBtn.onclick = function() {
-                copyTextToClipboard(this.getAttribute('data-text'), this);
-            };
-        }
-      }
-
-      function renderResult(o1, oDetails, o2, dose, safe, unit, ratioSafe=null, ratio=null, ratioLabel='') {
-        // 2. 優化範圍檢查顯示：使用強烈的紅/綠對比與明確文字
-        const statusClass = safe 
-            ? 'bg-green-100 border-green-300 text-green-900' 
-            : 'bg-red-100 border-red-300 text-red-900';
-        const statusIcon = safe ? '✅' : '❌';
-        const statusText = safe ? '範圍內' : '超出範圍';
-        
-        // 顯示單位，將 mcg 縮寫為 ug 以節省空間
-        const displayUnit = unit ? unit.replace('mcg', 'ug') : '';
-
-        let ratioHtml = '';
-        if (ratio !== null) {
-            const rClass = ratioSafe 
-                ? 'bg-green-100 border-green-300 text-green-900' 
-                : 'bg-red-100 border-red-300 text-red-900';
-            const rIcon = ratioSafe ? '✅' : '❌';
-            ratioHtml = `
-            <div class="flex-1 flex flex-col items-center justify-center px-1 rounded border ${rClass} text-center leading-none py-1">
-                <span class="text-[10px] opacity-80 mb-0.5">${ratioLabel}</span>
-                <span class="text-xs font-bold">${formatValue(ratio, '')} ${rIcon}</span>
-            </div>`;
-        }
-
-        return `
-          <div class="border-t border-gray-300 pt-2 mt-2">
-            <div class="flex gap-2 mb-2">
-                <div class="flex-1 bg-gray-50 border border-gray-200 rounded p-1.5">
-                    <div class="text-xs text-gray-500 font-bold mb-0.5">配藥</div>
-                    <div class="text-sm font-medium leading-tight text-gray-800">${o1}</div>
-                    <div class="text-xs text-gray-400 mt-0.5">${oDetails}</div>
-                </div>
-                <div class="flex-1 bg-cyan-50 border border-cyan-200 rounded p-1.5 flex flex-col justify-center">
-                    <div class="text-xs text-cyan-600 font-bold mb-0.5">執行</div>
-                    <div class="text-base font-bold text-cyan-800 leading-tight">${o2}</div>
-                </div>
-            </div>
-
-            <div class="flex items-stretch gap-2 h-9">
-                <button id="copyBtn" class="bg-gray-600 text-white text-xs font-bold px-3 rounded hover:bg-gray-700 transition-colors shrink-0">
-                    複製
-                </button>
-                
-                <div class="flex-1 flex flex-col items-center justify-center px-1 rounded border ${statusClass} text-center leading-none py-1">
-                    <span class="text-[10px] opacity-80 mb-0.5">劑量: ${formatValue(dose, displayUnit)}</span>
-                    <span class="text-xs font-bold">${statusIcon} ${statusText}</span>
-                </div>
-
-                ${ratioHtml}
-            </div>
-          </div>
-        `;
-      }
-
-    });
-  </script>
-
-  <script>
-    // ───────── 抗生素劑量分頁 ─────────
-    document.addEventListener('DOMContentLoaded', function () {
-      var D = window.ABX_DATA, L = window.AbxLogic;
-      var $ = function (id) { return document.getElementById(id); };
-
-      // 分頁切換
-      var panels = { drip: $('panel-drip'), abx: $('panel-abx'), misc: $('panel-misc') };
-      Array.prototype.forEach.call(document.querySelectorAll('[data-tab]'), function (btn) {
-        btn.addEventListener('click', function () {
-          var key = btn.getAttribute('data-tab');
-          Object.keys(panels).forEach(function (k) { panels[k].classList.toggle('hidden', k !== key); });
-          Array.prototype.forEach.call(document.querySelectorAll('[data-tab]'), function (b) {
-            var on = b === btn;
-            b.classList.toggle('bg-cyan-600', on); b.classList.toggle('text-white', on);
-            b.classList.toggle('bg-gray-100', !on); b.classList.toggle('text-gray-600', !on);
-          });
-        });
-      });
-
-      // 藥品下拉：同名多項（適應症／給法）收成第二個下拉，Gentamicin 預設 ODD
-      var byName = {};
-      D.drugs.forEach(function (d) { (byName[d.name] = byName[d.name] || []).push(d); });
-      Object.keys(byName).sort().forEach(function (name) {
-        var o = document.createElement('option'); o.value = name; o.textContent = name;
-        $('abxDrug').appendChild(o);
-      });
-
-      function variantLabel(d) { return d.indication || d.regimen || '標準'; }
-      function refreshVariants() {
-        var list = byName[$('abxDrug').value] || [], wrap = $('abxVariantWrap'), sel = $('abxVariant');
-        sel.innerHTML = '';
-        if (list.length <= 1) { wrap.classList.add('hidden'); }
-        else {
-          list.forEach(function (d, i) {
-            var o = document.createElement('option'); o.value = String(i); o.textContent = variantLabel(d);
-            sel.appendChild(o);
-          });
-          // 裁決3：Gentamicin 預設 ODD
-          var odd = list.findIndex(function (d) { return d.regimen === 'ODD'; });
-          sel.value = String(odd >= 0 ? odd : 0);
-          wrap.classList.remove('hidden');
-        }
-        hideResults();
-      }
-      function currentDrug() {
-        var list = byName[$('abxDrug').value] || [];
-        return list.length <= 1 ? list[0] : list[parseInt($('abxVariant').value, 10) || 0];
-      }
-      function hideResults() {
-        $('abxResult').classList.add('hidden');
-        $('abxReviewBox').classList.add('hidden');
-        $('abxReviewResult').classList.add('hidden');
-      }
-      $('abxDrug').addEventListener('change', refreshVariants);
-      $('abxVariant').addEventListener('change', hideResults);
-      refreshVariants();
-
-      var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); };
-      var fmt = function (n) { return Math.round(n * 100) / 100; };
-      var lastResolved = null, lastWeight = null;
-
-      function calc() {
-        var drug = currentDrug();
-        var ew = L.effectiveWeight(parseFloat($('abxBirthWeight').value), parseFloat($('abxCurrentWeight').value));
-        var days = parseFloat($('abxAgeDays').value);
-        var ga = parseFloat($('abxGaWeeks').value);
-        var box = $('abxResult'); box.classList.remove('hidden');
-        lastResolved = null; lastWeight = null;
-        $('abxReviewBox').classList.add('hidden');
-        $('abxReviewResult').classList.add('hidden');
-
-        if (!ew.g) { box.innerHTML = note('red', ew.reason); return; }
-        var sel = L.selectBand(ew.g, days);
-        if (sel.error) { box.innerHTML = note('red', sel.error); return; }
-        var res = L.resolveDose(drug, sel, { hasLevels: $('abxHasLevels').checked });
-
-        var head = '<div class="text-xs text-gray-600 mb-1">'
-          + '<span class="font-bold text-gray-800">' + esc(drug.name) + '</span>'
-          + (drug.indication || drug.regimen ? ' <span class="text-gray-500">(' + esc(variantLabel(drug)) + ')</span>' : '')
-          + (drug.route ? ' · ' + esc(drug.route) : '')
-          + '</div>'
-          + '<div class="text-[11px] text-gray-500 mb-1">使用體重 <b>' + ew.g + ' g</b>（' + esc(ew.reason) + '）　對應 <b>' + esc(sel.label) + '</b></div>';
-
-        var warns = L.warnings(drug, ga > 0 && days >= 0 ? ga + days / 7 : 0);
-        if (res.ok && res.intervalNote) warns.unshift(res.intervalNote);
-        var warnHtml = warns.length
-          ? '<div class="mt-1 space-y-0.5">' + warns.map(function (w) {
-              return '<div class="text-[11px] text-amber-900 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">⚠ ' + esc(w) + '</div>';
-            }).join('') + '</div>' : '';
-
-        if (!res.ok) {
-          box.innerHTML = '<div class="border-t border-gray-300 pt-2 mt-2">' + head
-            + note('red', res.reason)
-            + (res.freeText || res.raw ? '<div class="text-[11px] text-gray-600 mt-1 bg-gray-50 border border-gray-200 rounded px-1.5 py-1">原文：' + esc(res.freeText || res.raw) + '</div>' : '')
-            + warnHtml + '</div>';
-          return;
-        }
-
-        var pd = L.perDose(res, ew.g);
-        var perKg = res.min === res.max ? fmt(res.min) : fmt(res.min) + '~' + fmt(res.max);
-        var per = pd.min === pd.max ? fmt(pd.min) : fmt(pd.min) + '~' + fmt(pd.max);
-        box.innerHTML = '<div class="border-t border-gray-300 pt-2 mt-2">' + head
-          + '<div class="flex gap-2">'
-          +   '<div class="flex-1 bg-gray-50 border border-gray-200 rounded p-1.5">'
-          +     '<div class="text-xs text-gray-500 font-bold mb-0.5">本表建議</div>'
-          +     '<div class="text-sm font-medium text-gray-800">' + perKg + ' ' + esc(res.unit) + '/kg/dose ' + esc(res.interval) + '</div>'
-          +     '<div class="text-[11px] text-gray-400 mt-0.5">原文：' + esc(res.raw) + '</div>'
-          +   '</div>'
-          +   '<div class="flex-1 bg-cyan-50 border border-cyan-200 rounded p-1.5 flex flex-col justify-center">'
-          +     '<div class="text-xs text-cyan-600 font-bold mb-0.5">每劑</div>'
-          +     '<div class="text-base font-bold text-cyan-800 leading-tight">' + per + ' ' + esc(res.unit) + ' ' + esc(res.interval) + '</div>'
-          +   '</div>'
-          + '</div>' + warnHtml + '</div>';
-
-        lastResolved = res; lastWeight = ew.g;
-        $('abxOrderedInterval').value = res.interval;
-        $('abxReviewBox').classList.remove('hidden');
-      }
-
-      function note(color, text) {
-        var cls = color === 'red' ? 'bg-red-50 border-red-200 text-red-800' : 'bg-gray-50 border-gray-200 text-gray-700';
-        return '<div class="text-xs rounded border px-2 py-1 ' + cls + '">' + esc(text) + '</div>';
-      }
-
-      function review() {
-        if (!lastResolved) return;
-        var r = L.reviewOrder(lastResolved, lastWeight, parseFloat($('abxOrderedDose').value), $('abxOrderedInterval').value);
-        var box = $('abxReviewResult'); box.classList.remove('hidden');
-        if (r.verdict === 'n/a') { box.innerHTML = note('gray', r.text); return; }
-        var map = {
-          match: ['bg-green-100 border-green-300 text-green-900', '✅', '符合本表建議'],
-          high:  ['bg-red-100 border-red-300 text-red-900', '❌', '高於本表上限'],
-          low:   ['bg-red-100 border-red-300 text-red-900', '❌', '低於本表下限'],
-        }[r.verdict];
-        var dev = r.deviation ? '（' + (r.deviation > 0 ? '+' : '') + Math.round(r.deviation) + '%）' : '';
-        var iv = r.intervalMatch === false
-          ? '<div class="text-[11px] mt-0.5">⚠ Interval 不符：本表為 <b>' + esc(r.expectedInterval) + '</b></div>' : '';
-        box.innerHTML = '<div class="rounded border px-2 py-1.5 text-center ' + map[0] + '">'
-          + '<div class="text-sm font-bold">' + map[1] + ' ' + map[2] + ' ' + dev + '</div>'
-          + '<div class="text-[11px] opacity-80 mt-0.5">本表每劑 ' + fmt(r.perDose.min) + (r.perDose.min === r.perDose.max ? '' : '~' + fmt(r.perDose.max))
-          + ' ' + esc(r.perDose.unit) + ' ' + esc(r.perDose.interval) + '　你輸入 ' + fmt(r.ordered) + ' ' + esc(r.perDose.unit) + '</div>'
-          + iv + '</div>';
-      }
-
-      $('abxCalcBtn').addEventListener('click', calc);
-      $('abxReviewBtn').addEventListener('click', review);
-      ['abxBirthWeight', 'abxCurrentWeight', 'abxAgeDays', 'abxGaWeeks', 'abxHasLevels'].forEach(function (id) {
-        $(id).addEventListener('change', hideResults);
-      });
-
-      $('abxDataVersion').textContent = D.dataVersion;
-      $('abxSource').textContent = D.source;
-    });
-  </script>
-
-  <script>
-    // ───────── Surfactant / AOP / PDA 分頁 ─────────
-    document.addEventListener('DOMContentLoaded', function () {
-      var D = window.MISC_DATA, L = window.MiscLogic;
-      var $ = function (id) { return document.getElementById(id); };
-      var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); };
-      var fmt = function (n) { return Math.round(n * 100) / 100; };
-      var range = function (a, b) { return a === b ? fmt(a) : fmt(a) + '~' + fmt(b); };
-
-      // 依分類分組填入下拉
-      D.categories.forEach(function (cat) {
-        var group = document.createElement('optgroup'); group.label = cat;
-        D.drugs.filter(function (d) { return d.category === cat; }).forEach(function (d) {
-          var o = document.createElement('option'); o.value = d.id; o.textContent = d.name;
-          group.appendChild(o);
-        });
-        $('miscDrug').appendChild(group);
-      });
-
-      var lastRows = null;
-      function currentDrug() {
-        var id = $('miscDrug').value;
-        return D.drugs.filter(function (d) { return d.id === id; })[0];
-      }
-      function hideResults() {
-        $('miscResult').classList.add('hidden');
-        $('miscReviewBox').classList.add('hidden');
-        $('miscReviewResult').classList.add('hidden');
-        lastRows = null;
-      }
-
-      function calc() {
-        var drug = currentDrug();
-        var w = parseFloat($('miscWeight').value);
-        var out = L.compute(drug, w);
-        var box = $('miscResult'); box.classList.remove('hidden');
-        $('miscReviewBox').classList.add('hidden');
-        $('miscReviewResult').classList.add('hidden');
-        lastRows = null;
-
-        if (!out.ok) {
-          box.innerHTML = '<div class="text-xs rounded border px-2 py-1 bg-red-50 border-red-200 text-red-800">' + esc(out.reason) + '</div>';
-          return;
-        }
-
-        var rowsHtml = out.rows.map(function (r) {
-          var vol = r.volume
-            ? '<div class="text-[11px] text-gray-500 mt-0.5">' + esc(r.volume.text) + ' <b>'
-              + range(r.volume.value, r.volume.valueMax) + ' mL</b></div>'
-            : '';
-          return '<div class="flex gap-2 items-stretch">'
-            + '<div class="flex-1 bg-gray-50 border border-gray-200 rounded p-1.5">'
-            +   '<div class="text-xs text-gray-500 font-bold mb-0.5">' + esc(r.label)
-            +     (r.note ? ' <span class="font-normal text-gray-400">' + esc(r.note) + '</span>' : '') + '</div>'
-            +   '<div class="text-sm text-gray-800">' + esc(r.perKgText) + (r.interval ? ' ' + esc(r.interval) : '') + '</div>'
-            +   vol
-            + '</div>'
-            + '<div class="flex-1 bg-cyan-50 border border-cyan-200 rounded p-1.5 flex flex-col justify-center">'
-            +   '<div class="text-xs text-cyan-600 font-bold mb-0.5">每劑</div>'
-            +   '<div class="text-base font-bold text-cyan-800 leading-tight">' + range(r.min, r.max) + ' ' + esc(r.unit)
-            +     (r.interval ? ' ' + esc(r.interval) : '') + '</div>'
-            + '</div></div>';
-        }).join('<div class="h-1"></div>');
-
-        var extra = [];
-        if (drug.timing) extra.push('Timing：' + drug.timing);
-        (drug.constraints || []).forEach(function (c) { extra.push(c); });
-        if (drug.levels) extra.push('有效血中濃度 ' + drug.levels.therapeutic + '　Toxic ' + drug.levels.toxic);
-        (drug.notes || []).forEach(function (n) { extra.push(n); });
-        var extraHtml = extra.length
-          ? '<div class="mt-1 space-y-0.5">' + extra.map(function (t) {
-              return '<div class="text-[11px] text-amber-900 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">' + esc(t) + '</div>';
-            }).join('') + '</div>' : '';
-
-        box.innerHTML = '<div class="border-t border-gray-300 pt-2 mt-2">'
-          + '<div class="text-xs text-gray-600 mb-1"><span class="font-bold text-gray-800">' + esc(drug.name) + '</span>'
-          + (drug.route ? ' · ' + esc(drug.route) : '') + '</div>'
-          + rowsHtml + extraHtml + '</div>';
-
-        lastRows = out.rows;
-        var sel = $('miscReviewRow'); sel.innerHTML = '';
-        out.rows.forEach(function (r, i) {
-          var o = document.createElement('option'); o.value = String(i);
-          o.textContent = r.label + '（' + range(r.min, r.max) + ' ' + r.unit + '）';
-          sel.appendChild(o);
-        });
-        $('miscReviewBox').classList.remove('hidden');
-      }
-
-      function review() {
-        if (!lastRows) return;
-        var row = lastRows[parseInt($('miscReviewRow').value, 10) || 0];
-        var r = L.reviewOrder(row, parseFloat($('miscOrderedDose').value));
-        var box = $('miscReviewResult'); box.classList.remove('hidden');
-        if (r.verdict === 'n/a') {
-          box.innerHTML = '<div class="text-xs rounded border px-2 py-1 bg-gray-50 border-gray-200 text-gray-700">' + esc(r.text) + '</div>';
-          return;
-        }
-        var map = {
-          match: ['bg-green-100 border-green-300 text-green-900', '✅', '符合本表建議'],
-          high:  ['bg-red-100 border-red-300 text-red-900', '❌', '高於本表上限'],
-          low:   ['bg-red-100 border-red-300 text-red-900', '❌', '低於本表下限'],
-        }[r.verdict];
-        var dev = r.deviation ? '（' + (r.deviation > 0 ? '+' : '') + Math.round(r.deviation) + '%）' : '';
-        box.innerHTML = '<div class="rounded border px-2 py-1.5 text-center ' + map[0] + '">'
-          + '<div class="text-sm font-bold">' + map[1] + ' ' + map[2] + ' ' + dev + '</div>'
-          + '<div class="text-[11px] opacity-80 mt-0.5">' + esc(r.row.label) + ' 本表每劑 ' + range(r.row.min, r.row.max)
-          + ' ' + esc(r.row.unit) + '　你輸入 ' + fmt(r.ordered) + ' ' + esc(r.row.unit) + '</div></div>';
-      }
-
-      $('miscCalcBtn').addEventListener('click', calc);
-      $('miscReviewBtn').addEventListener('click', review);
-      $('miscDrug').addEventListener('change', hideResults);
-      $('miscWeight').addEventListener('change', hideResults);
-      $('miscDataVersion').textContent = D.dataVersion;
-    });
-  </script>
+  <script src="ui/flu.js"></script>
 </body>
 </html>
