@@ -109,7 +109,8 @@
     function calculate() {
       const selectedDrugName = drugSelect.value;
       const drug = drugs[selectedDrugName];
-      const weight = parseFloat(document.getElementById('weight').value);
+      const pw = window.Patient.currentWeight(window.Patient.read());
+      const weight = pw.g ? pw.g / 1000 : NaN;
       const inputTargetDose = parseFloat(document.getElementById('targetDose').value);
       const factor = parseFloat(document.getElementById('factor').value);
       const direction = document.getElementById('direction').value;

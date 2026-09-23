@@ -65,9 +65,10 @@
 
     function calc() {
       var drug = currentDrug();
-      var ew = L.effectiveWeight(parseFloat($('abxBirthWeight').value), parseFloat($('abxCurrentWeight').value));
-      var days = parseFloat($('abxAgeDays').value);
-      var ga = parseFloat($('abxGaWeeks').value);
+      var pt = window.Patient.read();
+      var ew = window.Patient.effectiveWeight(pt);
+      var days = pt.ageDays;
+      var ga = pt.gaWeeks;
       var box = $('abxResult'); box.classList.remove('hidden');
       lastResolved = null; lastWeight = null;
       $('abxReviewBox').classList.add('hidden');
@@ -161,9 +162,8 @@
 
     $('abxCalcBtn').addEventListener('click', calc);
     $('abxReviewBtn').addEventListener('click', review);
-    ['abxBirthWeight', 'abxCurrentWeight', 'abxAgeDays', 'abxGaWeeks', 'abxHasLevels'].forEach(function (id) {
-      $(id).addEventListener('change', hideResults);
-    });
+    $('abxHasLevels').addEventListener('change', hideResults);
+    window.Patient.onChange(hideResults);
 
     $('abxDataVersion').textContent = D.dataVersion;
     $('abxSource').textContent = D.source;

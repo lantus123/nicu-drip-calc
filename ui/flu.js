@@ -23,21 +23,20 @@
     // 不同用途需要的欄位不同
     function syncFields() {
       var m = $('fluMode').value;
-      $('fluGaWrap').classList.toggle('hidden', m !== 'treatment');
-      $('fluPnaWrap').classList.toggle('hidden', m !== 'treatment');
       $('fluIndicationWrap').classList.toggle('hidden', m !== 'indication');
       hideResults();
     }
     $('fluMode').addEventListener('change', syncFields);
-    ['fluWeight', 'fluGa', 'fluPna', 'fluCcr', 'fluIndication'].forEach(function (id) {
-      $(id).addEventListener('change', hideResults);
-    });
+    $('fluIndication').addEventListener('change', hideResults);
+    window.Patient.onChange(hideResults);
     syncFields();
 
     function calc() {
-      var w = parseFloat($('fluWeight').value), ccr = parseFloat($('fluCcr').value) || 0;
+      var pt = window.Patient.read();
+      var fw = window.Patient.currentWeight(pt);
+      var w = fw.g, ccr = pt.ccr || 0;
       var m = $('fluMode').value, out;
-      if (m === 'treatment') out = L.computeTreatment(D, w, parseFloat($('fluGa').value), parseFloat($('fluPna').value), ccr);
+      if (m === 'treatment') out = L.computeTreatment(D, w, pt.gaWeeks, pt.ageDays, ccr);
       else if (m === 'prophylaxis') out = L.computeProphylaxis(D, w, ccr);
       else out = L.computeIndication(D, w, $('fluIndication').value, ccr);
 

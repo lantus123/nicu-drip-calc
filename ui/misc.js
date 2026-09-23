@@ -32,7 +32,8 @@
 
     function calc() {
       var drug = currentDrug();
-      var w = parseFloat($('miscWeight').value);
+      var mw = window.Patient.currentWeight(window.Patient.read());
+      var w = mw.g;
       var out = L.compute(drug, w);
       var box = $('miscResult'); box.classList.remove('hidden');
       $('miscReviewBox').classList.add('hidden');
@@ -114,6 +115,6 @@
     $('miscCalcBtn').addEventListener('click', calc);
     $('miscReviewBtn').addEventListener('click', review);
     $('miscDrug').addEventListener('change', hideResults);
-    $('miscWeight').addEventListener('change', hideResults);
+    window.Patient.onChange(hideResults);
     $('miscDataVersion').textContent = D.dataVersion;
   });

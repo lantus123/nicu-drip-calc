@@ -29,6 +29,7 @@ globalThis.window = globalThis;
 globalThis.MISC_DATA = require(new URL('../data/misc-data.js', import.meta.url).pathname);
 globalThis.MiscLogic = require(new URL('../lib/misc-logic.js', import.meta.url).pathname);
 globalThis.self = globalThis;
+globalThis.Patient = require(new URL('../lib/patient.js', import.meta.url).pathname);
 await import(new URL('../ui/render.js', import.meta.url));
 vm.runInThisContext('(function(){' + code + '})()');
 docHandlers.DOMContentLoaded();
@@ -40,7 +41,7 @@ const text = id => $(id).innerHTML.replace(/<[^>]+>/g, ' ')
 
 function run(drugId, weight) {
   $('miscDrug').value = drugId;
-  $('miscWeight').value = String(weight);
+  $('pCurrentWeight').value = String(weight);
   $('miscCalcBtn')._h.click();
   return text('miscResult');
 }

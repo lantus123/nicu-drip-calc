@@ -48,6 +48,33 @@
     </header>
 
     <!-- 分頁列 -->
+    <!-- 病人資料：四個分頁共用，填一次到處通用 -->
+    <section class="mb-4 rounded-xl border border-cyan-200 bg-cyan-50 p-4">
+      <h2 class="mb-3 text-sm font-bold text-cyan-800">病人資料<span class="ml-2 font-normal text-cyan-700">（四個分頁共用）</span></h2>
+      <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        <div>
+          <label for="pBirthWeight" class="compact-label">出生體重 (g)</label>
+          <input type="number" id="pBirthWeight" step="1" placeholder="1500" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
+        </div>
+        <div>
+          <label for="pCurrentWeight" class="compact-label">當下體重 (g)</label>
+          <input type="number" id="pCurrentWeight" step="1" placeholder="同出生" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
+        </div>
+        <div>
+          <label for="pAgeDays" class="compact-label">日齡 (天)</label>
+          <input type="number" id="pAgeDays" step="1" placeholder="3" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
+        </div>
+        <div>
+          <label for="pGaWeeks" class="compact-label">出生 GA (週)</label>
+          <input type="number" id="pGaWeeks" step="0.1" placeholder="30" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
+        </div>
+        <div>
+          <label for="pCcr" class="compact-label">CCr（選填）</label>
+          <input type="number" id="pCcr" step="1" placeholder="—" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
+        </div>
+      </div>
+    </section>
+
     <nav class="flex flex-wrap gap-2 mb-4">
       <button data-tab="drip" class="btn rounded-lg px-4 py-2 text-sm font-bold bg-cyan-600 text-white">點滴滴速</button>
       <button data-tab="abx" class="btn rounded-lg px-4 py-2 text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200">抗生素劑量</button>
@@ -64,10 +91,6 @@
         <select id="drugSelect" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input"></select>
       </div>
       
-      <div>
-        <label for="weight" class="compact-label">體重 (kg)</label>
-        <input type="number" id="weight" step="0.01" placeholder="2.5" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
-      </div>
 
       <div class="sm:col-span-1 col-span-2">
         <div class="flex justify-between items-center">
@@ -112,22 +135,6 @@
     <!-- ───────── 抗生素劑量分頁 ───────── -->
     <div id="panel-abx" class="hidden">
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
-        <div>
-          <label for="abxBirthWeight" class="compact-label">出生體重 (g)</label>
-          <input type="number" id="abxBirthWeight" step="1" placeholder="1500" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
-        </div>
-        <div>
-          <label for="abxCurrentWeight" class="compact-label">當下體重 (g)</label>
-          <input type="number" id="abxCurrentWeight" step="1" placeholder="同出生" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
-        </div>
-        <div>
-          <label for="abxAgeDays" class="compact-label">日齡 (天)</label>
-          <input type="number" id="abxAgeDays" step="1" placeholder="3" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
-        </div>
-        <div>
-          <label for="abxGaWeeks" class="compact-label">出生 GA (週)</label>
-          <input type="number" id="abxGaWeeks" step="0.1" placeholder="30" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
-        </div>
 
         <div class="col-span-2">
           <label for="abxDrug" class="compact-label">藥品</label>
@@ -172,10 +179,6 @@
     <!-- ───────── Surfactant / AOP / PDA ───────── -->
     <div id="panel-misc" class="hidden">
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
-        <div>
-          <label for="miscWeight" class="compact-label">體重 (g)</label>
-          <input type="number" id="miscWeight" step="1" placeholder="1500" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
-        </div>
         <div class="col-span-2 sm:col-span-1">
           <label for="miscDrug" class="compact-label">藥品</label>
           <select id="miscDrug" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input"></select>
@@ -214,25 +217,9 @@
             <option value="indication">依適應症</option>
           </select>
         </div>
-        <div>
-          <label for="fluWeight" class="compact-label">體重 (g)</label>
-          <input type="number" id="fluWeight" step="1" placeholder="1000" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
-        </div>
-        <div id="fluGaWrap">
-          <label for="fluGa" class="compact-label">出生 GA (週)</label>
-          <input type="number" id="fluGa" step="0.1" placeholder="28" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
-        </div>
-        <div id="fluPnaWrap">
-          <label for="fluPna" class="compact-label">日齡 (天)</label>
-          <input type="number" id="fluPna" step="1" placeholder="10" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
-        </div>
         <div id="fluIndicationWrap" class="hidden col-span-2">
           <label for="fluIndication" class="compact-label">適應症</label>
           <select id="fluIndication" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input"></select>
-        </div>
-        <div>
-          <label for="fluCcr" class="compact-label">CCr（選填）</label>
-          <input type="number" id="fluCcr" step="1" placeholder="—" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
         </div>
         <div class="flex items-end">
           <button id="fluCalcBtn" class="btn bg-cyan-600 text-white font-bold rounded hover:bg-cyan-700 px-3 text-sm h-8 w-full">查劑量</button>
@@ -272,6 +259,7 @@
   <script src="data/flu-data.js"></script>
   <script src="lib/flu-logic.js"></script>
 
+  <script src="lib/patient.js"></script>
   <script src="ui/render.js"></script>
   <script src="ui/drip.js"></script>
 

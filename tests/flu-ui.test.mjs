@@ -29,6 +29,7 @@ globalThis.window = globalThis;
 globalThis.FLU_DATA = require(new URL('../data/flu-data.js', import.meta.url).pathname);
 globalThis.FluLogic = require(new URL('../lib/flu-logic.js', import.meta.url).pathname);
 globalThis.self = globalThis;
+globalThis.Patient = require(new URL('../lib/patient.js', import.meta.url).pathname);
 await import(new URL('../ui/render.js', import.meta.url));
 vm.runInThisContext('(function(){' + code + '})()');
 docHandlers.DOMContentLoaded();
@@ -41,8 +42,8 @@ const hidden = id => $(id).classList.contains('hidden');
 
 function run({ mode, w, ga = '', pna = '', ccr = '', indication = '' }) {
   $('fluMode').value = mode; $('fluMode')._h.change();
-  $('fluWeight').value = String(w); $('fluGa').value = String(ga);
-  $('fluPna').value = String(pna); $('fluCcr').value = String(ccr);
+  $('pCurrentWeight').value = String(w); $('pGaWeeks').value = String(ga);
+  $('pAgeDays').value = String(pna); $('pCcr').value = String(ccr);
   if (indication) $('fluIndication').value = indication;
   $('fluCalcBtn')._h.click();
   return text('fluResult');
@@ -67,13 +68,11 @@ const is = (label, got, want) => {
   console.log(`${ok ? 'OK  ' : 'FAIL'} ${label}` + (ok ? '' : ` got=${got} want=${want}`));
 };
 
-// 欄位依用途顯示
+// 欄位依用途顯示（GA／日齡／CCr 已移至共用的病人資料列，不再隨用途切換）
 // （stub 讀不到寫在 HTML 裡的 <option>，真實瀏覽器預設值為第一個選項 treatment，故此處明確設定）
 $('fluMode').value = 'treatment'; $('fluMode')._h.change();
-is('治療模式顯示 GA', hidden('fluGaWrap'), false);
 is('治療模式隱藏適應症', hidden('fluIndicationWrap'), true);
 $('fluMode').value = 'prophylaxis'; $('fluMode')._h.change();
-is('預防模式隱藏 GA', hidden('fluGaWrap'), true);
 is('預防模式隱藏適應症', hidden('fluIndicationWrap'), true);
 $('fluMode').value = 'indication'; $('fluMode')._h.change();
 is('適應症模式顯示適應症', hidden('fluIndicationWrap'), false);

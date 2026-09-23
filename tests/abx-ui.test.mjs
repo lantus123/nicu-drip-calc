@@ -30,6 +30,7 @@ globalThis.ABX_DATA = require(new URL('../data/abx-data.js', import.meta.url).pa
 globalThis.AbxLogic = require(new URL('../lib/abx-logic.js', import.meta.url).pathname);
 globalThis.ABX_ADMIN = require(new URL('../data/abx-admin.js', import.meta.url).pathname);
 globalThis.self = globalThis;
+globalThis.Patient = require(new URL('../lib/patient.js', import.meta.url).pathname);
 await import(new URL('../ui/render.js', import.meta.url));
 vm.runInThisContext('(function(){' + code + '})()');
 docHandlers.DOMContentLoaded();
@@ -47,8 +48,8 @@ const setVariant = label => {
 function run({ drug, variant, bw, cw = '', days, ga = '', levels = false }) {
   $('abxDrug').value = drug; $('abxDrug')._h.change();
   if (variant) setVariant(variant);
-  $('abxBirthWeight').value = String(bw); $('abxCurrentWeight').value = String(cw);
-  $('abxAgeDays').value = String(days); $('abxGaWeeks').value = String(ga);
+  $('pBirthWeight').value = String(bw); $('pCurrentWeight').value = String(cw);
+  $('pAgeDays').value = String(days); $('pGaWeeks').value = String(ga);
   $('abxHasLevels').checked = levels;
   $('abxCalcBtn')._h.click();
   return text('abxResult');

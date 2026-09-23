@@ -97,6 +97,20 @@ Aminophylline 與 Caffeine 另顯示有效血中濃度與 toxic level。
 原表兩處結構缺陷已標記於畫面：Systemic candidiasis 的 Day 1 與 Daily therapy 是合併儲存格；
 Relapse 列缺 Daily therapy 與 duration，因此只提供 Day 1。
 
+## 病人資料共用
+
+出生體重、當下體重、日齡、出生 GA、CCr 填在頁面最上方，**四個分頁共用**，同一個病人不必重複輸入。
+
+「用哪個體重」的規則集中在 `lib/patient.js`，各分頁不自行判斷：
+
+| 規則 | 用於 | 定義 |
+|---|---|---|
+| `effectiveWeight` | 抗生素表 | `max(出生體重, 當下體重)` —— 當下體重超過出生體重後才改用當下體重 |
+| `currentWeight` | 其他藥物、Fluconazole、點滴滴速 | 當下體重優先，未填則退回出生體重 |
+
+兩者在生理性體重下降期間會給出不同答案（生 1500 g／現 1200 g → 抗生素用 1500、其他用 1200），
+因此刻意分成兩個具名規則而非共用一個，並有測試釘住這個差異。
+
 ## 覆核設計
 
 這個工具的重點不是算出數字，是**讓醫師能驗算**。**四個分頁**的結果都附「計算過程」，
@@ -129,6 +143,7 @@ interval 超過 24 小時者（q36h／q48h）標示為「平均每日」而非�
 
 ```
 index.html          只有骨架與版面，不含程式邏輯
+lib/patient.js      共用病人資料與「用哪個體重」的規則
 ui/render.js        各分頁共用的呈現元件（計算過程、給藥指引）
 ui/                 各分頁的介面邏輯（drip / abx / misc / flu）
 data/abx-data.js    抗生素劑量查詢資料（程式產生，請勿手改）
@@ -143,7 +158,7 @@ tests/              node 原生執行，無相依套件
 
 顯示的數值一律四捨五入至**小數第 2 位**（例：1.25 mL/kg × 1.5 kg = 1.875 → 顯示 1.88 mL）。
 
-測試（共 231 項）：
+測試（共 246 項）：
 
 ```bash
 node tests/abx.test.mjs       # 抗生素資料 + 選格 + 覆核（50）
@@ -151,9 +166,10 @@ node tests/abx-ui.test.mjs    # 抗生素分頁端到端＋計算過程（28）
 node tests/misc.test.mjs      # 其他藥物資料 + 換算（30）
 node tests/misc-ui.test.mjs   # 其他藥物分頁端到端＋計算過程（23）
 node tests/flu.test.mjs       # Fluconazole 資料 + 換算 + 腎調整（48）
-node tests/flu-ui.test.mjs    # Fluconazole 分頁端到端＋計算過程（26）
+node tests/flu-ui.test.mjs    # Fluconazole 分頁端到端＋計算過程（24）
+node tests/patient.test.mjs   # 病人資料與體重規則（15）
 node tests/wiring.test.mjs    # DOM 接線靜態檢查（8）
-node tests/html-scripts.test.mjs # 腳本外置與可解析性（18）
+node tests/html-scripts.test.mjs # 腳本外置與可解析性（20）
 ```
 
 ## 部署
