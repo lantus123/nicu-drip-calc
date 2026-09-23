@@ -5,6 +5,7 @@
 
 1. **點滴滴速** — 依目標劑量反推 pump 滴速
 2. **抗生素劑量** — 依體重／日齡查建議劑量，並覆核欲開立的醫囑
+3. **其他藥物** — Surfactant／AOP／PDA 依體重換算劑量，並覆核
 
 > ⚠ 本工具僅供院內臨床人員輔助計算，**非通用臨床指引**，下醫囑前務必人工驗算。
 > 頁面設 `noindex`，不希望被搜尋引擎索引。
@@ -57,23 +58,45 @@
 
 資料僅含計算所需的查詢值，不重現原表版面，出處見 `data/abx-data.js` 的 `source`。
 
+## 分頁三：其他藥物
+
+| 分類 | 收錄 |
+|---|---|
+| Surfactant | Curosurf（初次 2.5 mL/kg、重複 1.25 mL/kg）、Survanta（4 mL/kg） |
+| AOP | Aminophylline（loading 5／maintenance 2 mg/kg Q12H）、Caffeine citrate（loading 20／maintenance 5-10 mg/kg QD） |
+| PDA | Ibuprofen standard／high-dose 三劑療程、Paracetamol PO、Propacetamol IV |
+
+除了每劑劑量，另外反推兩種容積：
+
+- **Ibuprofen**：依 IV 最高濃度 4 mg/mL 算出「至少需稀釋至幾 mL」
+- **Aminophylline**：改用 Theophylline Soln（5.34 mg/mL）口服時需抽取的容積
+
+Aminophylline 與 Caffeine 另顯示有效血中濃度與 toxic level。
+依裁決 6，**不收錄 Indomethacin**（院內無藥），並有測試把關。
+
 ## 開發
 
 無 build step，Tailwind 走 CDN，直接用瀏覽器開啟 `index.html` 即可。
 
 ```
-index.html          兩個分頁的 UI 與滴速計算邏輯
+index.html          三個分頁的 UI 與滴速計算邏輯
 data/abx-data.js    抗生素劑量查詢資料（程式產生，請勿手改）
-lib/abx-logic.js    選格／換算／覆核邏輯（瀏覽器與測試共用）
+data/misc-data.js   Surfactant／AOP／PDA 資料
+lib/abx-logic.js    抗生素選格／換算／覆核
+lib/misc-logic.js   其他藥物換算／覆核
 tests/              node 原生執行，無相依套件
 ```
 
-測試：
+顯示的數值一律四捨五入至**小數第 2 位**（例：1.25 mL/kg × 1.5 kg = 1.875 → 顯示 1.88 mL）。
+
+測試（共 124 項）：
 
 ```bash
-node tests/abx.test.mjs      # 資料完整性 + 選格 + 覆核（50 項）
-node tests/abx-ui.test.mjs   # 抗生素分頁端到端（18 項）
-node tests/wiring.test.mjs   # DOM 接線靜態檢查（9 項）
+node tests/abx.test.mjs       # 抗生素資料 + 選格 + 覆核（50）
+node tests/abx-ui.test.mjs    # 抗生素分頁端到端（18）
+node tests/misc.test.mjs      # 其他藥物資料 + 換算（30）
+node tests/misc-ui.test.mjs   # 其他藥物分頁端到端（16）
+node tests/wiring.test.mjs    # DOM 接線靜態檢查（10）
 ```
 
 ## 部署
