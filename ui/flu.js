@@ -46,27 +46,27 @@
       lastRows = null;
 
       if (!out.ok) {
-        box.innerHTML = '<div class="text-xs rounded border px-2 py-1 bg-red-50 border-red-200 text-red-800">' + esc(out.reason) + '</div>';
+        box.innerHTML = '<div class="text-sm rounded border px-3 py-2 bg-red-50 border-red-200 text-red-800">' + esc(out.reason) + '</div>';
         return;
       }
 
       var rowsHtml = out.rows.map(function (r) {
         var perKg = range(r.perKg.min, r.perKg.max) + ' mg/kg/dose';
         var rounded = r.amount.rounded
-          ? '<div class="text-[11px] text-gray-500 mt-0.5">無條件進位後 <b>' + range(r.amount.rounded.min, r.amount.rounded.max) + ' mg</b></div>' : '';
+          ? '<div class="text-sm text-gray-500 mt-1">無條件進位後 <b>' + range(r.amount.rounded.min, r.amount.rounded.max) + ' mg</b></div>' : '';
         var inf = r.infusion
-          ? '<div class="text-[11px] text-gray-500 mt-0.5">以 ' + D.administration.maxConcentration + ' mg/mL 稀釋約 <b>'
+          ? '<div class="text-sm text-gray-500 mt-1">以 ' + D.administration.maxConcentration + ' mg/mL 稀釋約 <b>'
             + fmt(r.infusion.volumeMl) + ' mL</b>，至少輸注 <b>' + fmt(r.infusion.minHours) + ' 小時</b>（' + esc(r.infusion.limitedBy) + '）</div>' : '';
         return '<div class="flex gap-2 items-stretch">'
-          + '<div class="flex-1 bg-gray-50 border border-gray-200 rounded p-1.5">'
-          +   '<div class="text-xs text-gray-500 font-bold mb-0.5">' + esc(r.label)
+          + '<div class="flex-1 bg-gray-50 border border-gray-200 rounded-lg p-3">'
+          +   '<div class="text-sm text-gray-500 font-bold mb-1">' + esc(r.label)
           +     (r.note ? ' <span class="font-normal text-gray-400">' + esc(r.note) + '</span>' : '') + '</div>'
-          +   '<div class="text-sm text-gray-800">' + perKg + (r.interval ? ' ' + esc(r.interval) : '') + '</div>'
+          +   '<div class="text-base text-gray-800">' + perKg + (r.interval ? ' ' + esc(r.interval) : '') + '</div>'
           +   rounded + inf
           + '</div>'
-          + '<div class="flex-1 bg-cyan-50 border border-cyan-200 rounded p-1.5 flex flex-col justify-center">'
-          +   '<div class="text-xs text-cyan-600 font-bold mb-0.5">每劑</div>'
-          +   '<div class="text-base font-bold text-cyan-800 leading-tight">' + range(r.amount.min, r.amount.max) + ' mg'
+          + '<div class="flex-1 bg-cyan-50 border border-cyan-200 rounded-lg p-3 flex flex-col justify-center">'
+          +   '<div class="text-sm text-cyan-600 font-bold mb-1">每劑</div>'
+          +   '<div class="text-xl font-bold text-cyan-800 leading-tight">' + range(r.amount.min, r.amount.max) + ' mg'
           +     (r.interval ? ' ' + esc(r.interval) : '') + '</div>'
           + '</div></div>';
       }).join('<div class="h-1"></div>');
@@ -84,11 +84,11 @@
       D.administration.warnings.forEach(function (w) { notes.push(w); });
 
       box.innerHTML = '<div class="border-t border-gray-300 pt-2 mt-2">'
-        + '<div class="text-xs text-gray-600 mb-1"><span class="font-bold text-gray-800">' + esc(D.drug) + '</span>'
+        + '<div class="text-sm text-gray-600 mb-1"><span class="font-bold text-gray-800">' + esc(D.drug) + '</span>'
         + (out.indication ? ' · ' + esc(out.indication.name) : '') + '</div>'
         + rowsHtml
         + '<div class="mt-1 space-y-0.5">' + notes.map(function (t) {
-            return '<div class="text-[11px] text-amber-900 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">' + esc(t) + '</div>';
+            return '<div class="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded px-3 py-1.5">' + esc(t) + '</div>';
           }).join('') + '</div>'
         + '</div>';
 
@@ -108,7 +108,7 @@
       var r = L.reviewOrder(row, parseFloat($('fluOrderedDose').value));
       var box = $('fluReviewResult'); box.classList.remove('hidden');
       if (r.verdict === 'n/a') {
-        box.innerHTML = '<div class="text-xs rounded border px-2 py-1 bg-gray-50 border-gray-200 text-gray-700">' + esc(r.text) + '</div>';
+        box.innerHTML = '<div class="text-sm rounded border px-3 py-2 bg-gray-50 border-gray-200 text-gray-700">' + esc(r.text) + '</div>';
         return;
       }
       var map = {
@@ -117,9 +117,9 @@
         low:   ['bg-red-100 border-red-300 text-red-900', '❌', '低於本表下限'],
       }[r.verdict];
       var dev = r.deviation ? '（' + (r.deviation > 0 ? '+' : '') + Math.round(r.deviation) + '%）' : '';
-      box.innerHTML = '<div class="rounded border px-2 py-1.5 text-center ' + map[0] + '">'
-        + '<div class="text-sm font-bold">' + map[1] + ' ' + map[2] + ' ' + dev + '</div>'
-        + '<div class="text-[11px] opacity-80 mt-0.5">' + esc(r.row.label) + ' 本表每劑 ' + range(r.row.amount.min, r.row.amount.max)
+      box.innerHTML = '<div class="rounded border px-3 py-2.5 text-center ' + map[0] + '">'
+        + '<div class="text-base font-bold">' + map[1] + ' ' + map[2] + ' ' + dev + '</div>'
+        + '<div class="text-sm opacity-80 mt-1">' + esc(r.row.label) + ' 本表每劑 ' + range(r.row.amount.min, r.row.amount.max)
         + ' mg　你輸入 ' + fmt(r.ordered) + ' mg</div></div>';
     }
 

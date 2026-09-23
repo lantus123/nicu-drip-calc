@@ -13,51 +13,51 @@
       font-family: 'Inter', 'Noto Sans TC', sans-serif;
       -webkit-text-size-adjust: 100%;
     }
-    /* 自訂緊湊輸入框樣式 */
+    /* 輸入欄位：整頁版面，以可讀與好按為準（行動裝置 16px 避免 iOS 自動放大） */
     .compact-input {
-      padding-top: 0.25rem;
-      padding-bottom: 0.25rem;
-      padding-left: 0.5rem;
-      padding-right: 0.5rem;
-      font-size: 0.875rem; /* 14px text-sm */
-      line-height: 1.25rem;
-      height: 2rem;
+      padding: 0.5rem 0.75rem;
+      font-size: 1rem;
+      line-height: 1.5rem;
+      height: 2.75rem;
     }
     .compact-label {
-      font-size: 0.75rem; /* 12px text-xs */
+      font-size: 0.875rem;
       font-weight: 600;
-      color: #4b5563;
-      margin-bottom: 0.1rem;
-      white-space: nowrap;
+      color: #374151;
+      margin-bottom: 0.25rem;
+      display: block;
     }
     .btn:active { transform: scale(0.98); }
+    /* 計算過程表格：等寬數字讓上下對齊，便於逐行驗算 */
+    .steps { font-variant-numeric: tabular-nums; }
   </style>
 </head>
 <body class="bg-white text-gray-800">
 
-  <div class="max-w-3xl mx-auto p-1"> 
+  <div class="max-w-4xl mx-auto px-4 py-6 sm:px-6"> 
     
     <!-- 標題列 -->
-    <div class="flex items-center justify-between mb-2 px-1">
-      <h1 class="text-lg font-bold text-cyan-700 flex items-center gap-2">
-        NICU 計算機
-      </h1>
-      <span class="text-xs text-yellow-800 bg-yellow-100 px-2 py-0.5 rounded border border-yellow-200">
-        ⚠️ 僅供參考，務必驗算
+    <header class="mb-4 flex flex-wrap items-baseline justify-between gap-2 border-b border-gray-200 pb-3">
+      <div>
+        <h1 class="text-2xl font-bold text-cyan-700">NICU 計算機</h1>
+        <p class="mt-1 text-sm text-gray-500">馬偕紀念醫院新生兒科　劑量計算與醫囑覆核</p>
+      </div>
+      <span class="rounded border border-yellow-300 bg-yellow-50 px-3 py-1.5 text-sm font-medium text-yellow-900">
+        ⚠️ 僅供參考，下醫囑前務必自行驗算
       </span>
-    </div>
+    </header>
 
     <!-- 分頁列 -->
-    <div class="flex flex-wrap gap-1 mb-2 px-1">
-      <button data-tab="drip" class="btn text-xs font-bold px-3 py-1 rounded bg-cyan-600 text-white">點滴滴速</button>
-      <button data-tab="abx" class="btn text-xs font-bold px-3 py-1 rounded bg-gray-100 text-gray-600">抗生素劑量</button>
-      <button data-tab="misc" class="btn text-xs font-bold px-3 py-1 rounded bg-gray-100 text-gray-600">其他藥物</button>
-      <button data-tab="flu" class="btn text-xs font-bold px-3 py-1 rounded bg-gray-100 text-gray-600">Fluconazole</button>
-    </div>
+    <nav class="flex flex-wrap gap-2 mb-4">
+      <button data-tab="drip" class="btn rounded-lg px-4 py-2 text-sm font-bold bg-cyan-600 text-white">點滴滴速</button>
+      <button data-tab="abx" class="btn rounded-lg px-4 py-2 text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200">抗生素劑量</button>
+      <button data-tab="misc" class="btn rounded-lg px-4 py-2 text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200">其他藥物</button>
+      <button data-tab="flu" class="btn rounded-lg px-4 py-2 text-sm font-bold bg-gray-100 text-gray-600 hover:bg-gray-200">Fluconazole</button>
+    </nav>
 
     <div id="panel-drip">
     <!-- 輸入區塊 -->
-    <div id="input-form" class="grid grid-cols-2 sm:grid-cols-3 gap-x-2 gap-y-2 bg-gray-50 p-2 rounded-lg border border-gray-200">
+    <div id="input-form" class="grid grid-cols-2 sm:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
       
       <div>
         <label for="drugSelect" class="compact-label">選擇藥品</label>
@@ -106,12 +106,12 @@
     <p id="error-message" class="hidden text-red-500 text-xs mt-1 px-1">請檢查輸入數值。</p>
 
     <!-- 結果區塊 -->
-    <div id="result" class="mt-2 hidden"></div>
+    <div id="result" class="mt-4 hidden"></div>
     </div><!-- /panel-drip -->
 
     <!-- ───────── 抗生素劑量分頁 ───────── -->
     <div id="panel-abx" class="hidden">
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-x-2 gap-y-2 bg-gray-50 p-2 rounded-lg border border-gray-200">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
         <div>
           <label for="abxBirthWeight" class="compact-label">出生體重 (g)</label>
           <input type="number" id="abxBirthWeight" step="1" placeholder="1500" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
@@ -146,11 +146,11 @@
         </div>
       </div>
 
-      <div id="abxResult" class="mt-2 hidden"></div>
+      <div id="abxResult" class="mt-4 hidden"></div>
 
       <!-- 覆核區：醫師輸入打算開的醫囑，系統只負責比對 -->
-      <div id="abxReviewBox" class="mt-2 hidden">
-        <div class="flex items-end gap-2 bg-slate-50 border border-slate-200 rounded-lg p-2">
+      <div id="abxReviewBox" class="mt-4 hidden">
+        <div class="flex flex-wrap items-end gap-3 bg-slate-50 border border-slate-200 rounded-xl p-4">
           <div class="flex-1">
             <label for="abxOrderedDose" class="compact-label">覆核：我打算開每劑</label>
             <input type="number" id="abxOrderedDose" step="0.1" placeholder="數值" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
@@ -165,13 +165,13 @@
           </div>
           <button id="abxReviewBtn" class="btn bg-slate-600 text-white font-bold rounded hover:bg-slate-700 px-3 text-sm h-8 whitespace-nowrap">覆核</button>
         </div>
-        <div id="abxReviewResult" class="mt-2 hidden"></div>
+        <div id="abxReviewResult" class="mt-4 hidden"></div>
       </div>
     </div>
 
     <!-- ───────── Surfactant / AOP / PDA ───────── -->
     <div id="panel-misc" class="hidden">
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-x-2 gap-y-2 bg-gray-50 p-2 rounded-lg border border-gray-200">
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
         <div>
           <label for="miscWeight" class="compact-label">體重 (g)</label>
           <input type="number" id="miscWeight" step="1" placeholder="1500" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
@@ -185,10 +185,10 @@
         </div>
       </div>
 
-      <div id="miscResult" class="mt-2 hidden"></div>
+      <div id="miscResult" class="mt-4 hidden"></div>
 
-      <div id="miscReviewBox" class="mt-2 hidden">
-        <div class="flex items-end gap-2 bg-slate-50 border border-slate-200 rounded-lg p-2">
+      <div id="miscReviewBox" class="mt-4 hidden">
+        <div class="flex flex-wrap items-end gap-3 bg-slate-50 border border-slate-200 rounded-xl p-4">
           <div class="flex-1">
             <label for="miscReviewRow" class="compact-label">覆核哪一項</label>
             <select id="miscReviewRow" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input"></select>
@@ -199,13 +199,13 @@
           </div>
           <button id="miscReviewBtn" class="btn bg-slate-600 text-white font-bold rounded hover:bg-slate-700 px-3 text-sm h-8 whitespace-nowrap">覆核</button>
         </div>
-        <div id="miscReviewResult" class="mt-2 hidden"></div>
+        <div id="miscReviewResult" class="mt-4 hidden"></div>
       </div>
     </div>
 
     <!-- ───────── Fluconazole ───────── -->
     <div id="panel-flu" class="hidden">
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-x-2 gap-y-2 bg-gray-50 p-2 rounded-lg border border-gray-200">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
         <div class="col-span-2 sm:col-span-1">
           <label for="fluMode" class="compact-label">用途</label>
           <select id="fluMode" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
@@ -239,10 +239,10 @@
         </div>
       </div>
 
-      <div id="fluResult" class="mt-2 hidden"></div>
+      <div id="fluResult" class="mt-4 hidden"></div>
 
-      <div id="fluReviewBox" class="mt-2 hidden">
-        <div class="flex items-end gap-2 bg-slate-50 border border-slate-200 rounded-lg p-2">
+      <div id="fluReviewBox" class="mt-4 hidden">
+        <div class="flex flex-wrap items-end gap-3 bg-slate-50 border border-slate-200 rounded-xl p-4">
           <div class="flex-1">
             <label for="fluReviewRow" class="compact-label">覆核哪一項</label>
             <select id="fluReviewRow" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input"></select>
@@ -253,11 +253,11 @@
           </div>
           <button id="fluReviewBtn" class="btn bg-slate-600 text-white font-bold rounded hover:bg-slate-700 px-3 text-sm h-8 whitespace-nowrap">覆核</button>
         </div>
-        <div id="fluReviewResult" class="mt-2 hidden"></div>
+        <div id="fluReviewResult" class="mt-4 hidden"></div>
       </div>
     </div>
 
-    <footer class="mt-3 px-1 text-[10px] text-gray-400 leading-snug border-t border-gray-200 pt-1.5">
+    <footer class="mt-8 text-xs text-gray-500 leading-relaxed border-t border-gray-200 pt-4">
       馬偕紀念醫院新生兒科內部使用，非通用臨床指引；務必自行驗算後再開立醫囑。<br>
       抗生素劑量資料版本 <span id="abxDataVersion"></span>，取自 <span id="abxSource"></span>。<br>
       Surfactant／AOP／PDA 資料版本 <span id="miscDataVersion"></span>，Fluconazole 資料版本 <span id="fluDataVersion"></span>。

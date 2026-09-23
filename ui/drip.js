@@ -210,33 +210,33 @@
           const rIcon = ratioSafe ? '✅' : '❌';
           ratioHtml = `
           <div class="flex-1 flex flex-col items-center justify-center px-1 rounded border ${rClass} text-center leading-none py-1">
-              <span class="text-[10px] opacity-80 mb-0.5">${ratioLabel}</span>
-              <span class="text-xs font-bold">${formatValue(ratio, '')} ${rIcon}</span>
+              <span class="text-xs opacity-80 mb-1">${ratioLabel}</span>
+              <span class="text-sm font-bold">${formatValue(ratio, '')} ${rIcon}</span>
           </div>`;
       }
 
       return `
         <div class="border-t border-gray-300 pt-2 mt-2">
-          <div class="flex gap-2 mb-2">
-              <div class="flex-1 bg-gray-50 border border-gray-200 rounded p-1.5">
-                  <div class="text-xs text-gray-500 font-bold mb-0.5">配藥</div>
-                  <div class="text-sm font-medium leading-tight text-gray-800">${o1}</div>
-                  <div class="text-xs text-gray-400 mt-0.5">${oDetails}</div>
+          <div class="flex gap-3 mb-3">
+              <div class="flex-1 bg-gray-50 border border-gray-200 rounded-lg p-3">
+                  <div class="text-sm text-gray-500 font-bold mb-1">配藥</div>
+                  <div class="text-base font-medium leading-tight text-gray-800">${o1}</div>
+                  <div class="text-sm text-gray-400 mt-1">${oDetails}</div>
               </div>
-              <div class="flex-1 bg-cyan-50 border border-cyan-200 rounded p-1.5 flex flex-col justify-center">
-                  <div class="text-xs text-cyan-600 font-bold mb-0.5">執行</div>
-                  <div class="text-base font-bold text-cyan-800 leading-tight">${o2}</div>
+              <div class="flex-1 bg-cyan-50 border border-cyan-200 rounded-lg p-3 flex flex-col justify-center">
+                  <div class="text-sm text-cyan-600 font-bold mb-1">執行</div>
+                  <div class="text-xl font-bold text-cyan-800 leading-tight">${o2}</div>
               </div>
           </div>
 
-          <div class="flex items-stretch gap-2 h-9">
-              <button id="copyBtn" class="bg-gray-600 text-white text-xs font-bold px-3 rounded hover:bg-gray-700 transition-colors shrink-0">
+          <div class="flex items-stretch gap-2 h-11">
+              <button id="copyBtn" class="bg-gray-600 text-white text-sm font-bold px-3 rounded hover:bg-gray-700 transition-colors shrink-0">
                   複製
               </button>
               
               <div class="flex-1 flex flex-col items-center justify-center px-1 rounded border ${statusClass} text-center leading-none py-1">
-                  <span class="text-[10px] opacity-80 mb-0.5">劑量: ${formatValue(dose, displayUnit)}</span>
-                  <span class="text-xs font-bold">${statusIcon} ${statusText}</span>
+                  <span class="text-xs opacity-80 mb-1">劑量: ${formatValue(dose, displayUnit)}</span>
+                  <span class="text-sm font-bold">${statusIcon} ${statusText}</span>
               </div>
 
               ${ratioHtml}

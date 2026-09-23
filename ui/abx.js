@@ -75,24 +75,24 @@
       if (sel.error) { box.innerHTML = note('red', sel.error); return; }
       var res = L.resolveDose(drug, sel, { hasLevels: $('abxHasLevels').checked });
 
-      var head = '<div class="text-xs text-gray-600 mb-1">'
+      var head = '<div class="text-sm text-gray-600 mb-1">'
         + '<span class="font-bold text-gray-800">' + esc(drug.name) + '</span>'
         + (drug.indication || drug.regimen ? ' <span class="text-gray-500">(' + esc(variantLabel(drug)) + ')</span>' : '')
         + (drug.route ? ' · ' + esc(drug.route) : '')
         + '</div>'
-        + '<div class="text-[11px] text-gray-500 mb-1">使用體重 <b>' + ew.g + ' g</b>（' + esc(ew.reason) + '）　對應 <b>' + esc(sel.label) + '</b></div>';
+        + '<div class="text-sm text-gray-500 mb-1">使用體重 <b>' + ew.g + ' g</b>（' + esc(ew.reason) + '）　對應 <b>' + esc(sel.label) + '</b></div>';
 
       var warns = L.warnings(drug, ga > 0 && days >= 0 ? ga + days / 7 : 0);
       if (res.ok && res.intervalNote) warns.unshift(res.intervalNote);
       var warnHtml = warns.length
         ? '<div class="mt-1 space-y-0.5">' + warns.map(function (w) {
-            return '<div class="text-[11px] text-amber-900 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">⚠ ' + esc(w) + '</div>';
+            return '<div class="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded px-3 py-1.5">⚠ ' + esc(w) + '</div>';
           }).join('') + '</div>' : '';
 
       if (!res.ok) {
         box.innerHTML = '<div class="border-t border-gray-300 pt-2 mt-2">' + head
           + note('red', res.reason)
-          + (res.freeText || res.raw ? '<div class="text-[11px] text-gray-600 mt-1 bg-gray-50 border border-gray-200 rounded px-1.5 py-1">原文：' + esc(res.freeText || res.raw) + '</div>' : '')
+          + (res.freeText || res.raw ? '<div class="text-sm text-gray-600 mt-1 bg-gray-50 border border-gray-200 rounded px-3 py-2">原文：' + esc(res.freeText || res.raw) + '</div>' : '')
           + stepsHtml(L.explain(drug, sel, res, ew, ew.g))
           + adminHtml(drug)
           + warnHtml + '</div>';
@@ -104,21 +104,21 @@
     var perKg = res.min === res.max ? fmt(res.min) : fmt(res.min) + '~' + fmt(res.max);
     var per = pd.min === pd.max ? fmt(pd.min) : fmt(pd.min) + '~' + fmt(pd.max);
     var daily = dt
-      ? '<div class="text-[11px] text-cyan-700 mt-0.5">' + (dt.averaged ? '平均每日' : '每日總量') + ' '
+      ? '<div class="text-sm text-cyan-700 mt-1">' + (dt.averaged ? '平均每日' : '每日總量') + ' '
         + (dt.min === dt.max ? fmt(dt.min) : fmt(dt.min) + '~' + fmt(dt.max)) + ' ' + esc(res.unit)
         + '（' + (dt.perKgMin === dt.perKgMax ? fmt(dt.perKgMin) : fmt(dt.perKgMin) + '~' + fmt(dt.perKgMax))
         + ' ' + esc(res.unit) + '/kg/day）</div>' : '';
 
     box.innerHTML = '<div class="border-t border-gray-300 pt-2 mt-2">' + head
       + '<div class="flex gap-2">'
-      +   '<div class="flex-1 bg-gray-50 border border-gray-200 rounded p-1.5">'
-      +     '<div class="text-xs text-gray-500 font-bold mb-0.5">本表建議</div>'
-      +     '<div class="text-sm font-medium text-gray-800">' + perKg + ' ' + esc(res.unit) + '/kg/dose ' + esc(res.interval) + '</div>'
-      +     '<div class="text-[11px] text-gray-400 mt-0.5">原文：' + esc(res.raw) + '</div>'
+      +   '<div class="flex-1 bg-gray-50 border border-gray-200 rounded-lg p-3">'
+      +     '<div class="text-sm text-gray-500 font-bold mb-1">本表建議</div>'
+      +     '<div class="text-base font-medium text-gray-800">' + perKg + ' ' + esc(res.unit) + '/kg/dose ' + esc(res.interval) + '</div>'
+      +     '<div class="text-sm text-gray-400 mt-1">原文：' + esc(res.raw) + '</div>'
       +   '</div>'
-      +   '<div class="flex-1 bg-cyan-50 border border-cyan-200 rounded p-1.5 flex flex-col justify-center">'
-      +     '<div class="text-xs text-cyan-600 font-bold mb-0.5">每劑</div>'
-      +     '<div class="text-base font-bold text-cyan-800 leading-tight">' + per + ' ' + esc(res.unit) + ' ' + esc(res.interval) + '</div>'
+      +   '<div class="flex-1 bg-cyan-50 border border-cyan-200 rounded-lg p-3 flex flex-col justify-center">'
+      +     '<div class="text-sm text-cyan-600 font-bold mb-1">每劑</div>'
+      +     '<div class="text-xl font-bold text-cyan-800 leading-tight">' + per + ' ' + esc(res.unit) + ' ' + esc(res.interval) + '</div>'
       +     daily
       +   '</div>'
       + '</div>'
@@ -133,12 +133,12 @@
 
     // 計算過程：預設收合，展開後每一行都能獨立驗算
     function stepsHtml(steps) {
-      return '<details class="mt-1.5">'
-        + '<summary class="text-[11px] text-cyan-700 cursor-pointer select-none hover:underline">▸ 計算過程（' + steps.length + ' 步）</summary>'
-        + '<div class="mt-1 border border-gray-200 rounded overflow-hidden">'
+      return '<details open class="mt-4">'
+        + '<summary class="text-sm font-semibold text-cyan-700 cursor-pointer select-none hover:underline">計算過程（' + steps.length + ' 步）</summary>'
+        + '<div class="steps mt-2 border border-gray-200 rounded-lg overflow-hidden">'
         + steps.map(function (st, i) {
-            return '<div class="flex gap-2 px-1.5 py-1 text-[11px] ' + (i % 2 ? 'bg-white' : 'bg-gray-50') + (st.emphasis ? ' font-semibold' : '') + '">'
-              + '<div class="w-16 shrink-0 text-gray-500">' + esc(st.label) + '</div>'
+            return '<div class="flex gap-2 px-3 py-2 text-sm ' + (i % 2 ? 'bg-white' : 'bg-gray-50') + (st.emphasis ? ' font-semibold' : '') + '">'
+              + '<div class="w-24 shrink-0 font-medium text-gray-500">' + esc(st.label) + '</div>'
               + '<div class="flex-1 text-gray-600">' + esc(st.detail || '') + '</div>'
               + '<div class="shrink-0 text-gray-900">' + esc(st.value) + '</div>'
               + '</div>';
@@ -156,10 +156,10 @@
         .concat((a.cautions || []).map(function (x) { return { t: x, warn: true }; }));
       if (!items.length) return '';
       return '<details class="mt-1">'
-        + '<summary class="text-[11px] text-cyan-700 cursor-pointer select-none hover:underline">▸ 給藥指引（' + items.length + ' 項）</summary>'
+        + '<summary class="text-sm text-cyan-700 cursor-pointer select-none hover:underline">▸ 給藥指引（' + items.length + ' 項）</summary>'
         + '<div class="mt-1 space-y-0.5">'
         + items.map(function (it) {
-            return '<div class="text-[11px] rounded px-1.5 py-0.5 border '
+            return '<div class="text-sm rounded px-3 py-1.5 border '
               + (it.warn ? 'bg-red-50 border-red-200 text-red-900' : 'bg-slate-50 border-slate-200 text-slate-700')
               + '">' + (it.warn ? '⚠ ' : '') + esc(it.t) + '</div>';
           }).join('')
@@ -168,7 +168,7 @@
 
     function note(color, text) {
       var cls = color === 'red' ? 'bg-red-50 border-red-200 text-red-800' : 'bg-gray-50 border-gray-200 text-gray-700';
-      return '<div class="text-xs rounded border px-2 py-1 ' + cls + '">' + esc(text) + '</div>';
+      return '<div class="text-sm rounded border px-3 py-2 ' + cls + '">' + esc(text) + '</div>';
     }
 
     function review() {
@@ -183,10 +183,10 @@
       }[r.verdict];
       var dev = r.deviation ? '（' + (r.deviation > 0 ? '+' : '') + Math.round(r.deviation) + '%）' : '';
       var iv = r.intervalMatch === false
-        ? '<div class="text-[11px] mt-0.5">⚠ Interval 不符：本表為 <b>' + esc(r.expectedInterval) + '</b></div>' : '';
-      box.innerHTML = '<div class="rounded border px-2 py-1.5 text-center ' + map[0] + '">'
-        + '<div class="text-sm font-bold">' + map[1] + ' ' + map[2] + ' ' + dev + '</div>'
-        + '<div class="text-[11px] opacity-80 mt-0.5">本表每劑 ' + fmt(r.perDose.min) + (r.perDose.min === r.perDose.max ? '' : '~' + fmt(r.perDose.max))
+        ? '<div class="text-sm mt-1">⚠ Interval 不符：本表為 <b>' + esc(r.expectedInterval) + '</b></div>' : '';
+      box.innerHTML = '<div class="rounded border px-3 py-2.5 text-center ' + map[0] + '">'
+        + '<div class="text-base font-bold">' + map[1] + ' ' + map[2] + ' ' + dev + '</div>'
+        + '<div class="text-sm opacity-80 mt-1">本表每劑 ' + fmt(r.perDose.min) + (r.perDose.min === r.perDose.max ? '' : '~' + fmt(r.perDose.max))
         + ' ' + esc(r.perDose.unit) + ' ' + esc(r.perDose.interval) + '　你輸入 ' + fmt(r.ordered) + ' ' + esc(r.perDose.unit) + '</div>'
         + iv + '</div>';
     }

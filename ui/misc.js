@@ -39,25 +39,25 @@
       lastRows = null;
 
       if (!out.ok) {
-        box.innerHTML = '<div class="text-xs rounded border px-2 py-1 bg-red-50 border-red-200 text-red-800">' + esc(out.reason) + '</div>';
+        box.innerHTML = '<div class="text-sm rounded border px-3 py-2 bg-red-50 border-red-200 text-red-800">' + esc(out.reason) + '</div>';
         return;
       }
 
       var rowsHtml = out.rows.map(function (r) {
         var vol = r.volume
-          ? '<div class="text-[11px] text-gray-500 mt-0.5">' + esc(r.volume.text) + ' <b>'
+          ? '<div class="text-sm text-gray-500 mt-1">' + esc(r.volume.text) + ' <b>'
             + range(r.volume.value, r.volume.valueMax) + ' mL</b></div>'
           : '';
         return '<div class="flex gap-2 items-stretch">'
-          + '<div class="flex-1 bg-gray-50 border border-gray-200 rounded p-1.5">'
-          +   '<div class="text-xs text-gray-500 font-bold mb-0.5">' + esc(r.label)
+          + '<div class="flex-1 bg-gray-50 border border-gray-200 rounded-lg p-3">'
+          +   '<div class="text-sm text-gray-500 font-bold mb-1">' + esc(r.label)
           +     (r.note ? ' <span class="font-normal text-gray-400">' + esc(r.note) + '</span>' : '') + '</div>'
-          +   '<div class="text-sm text-gray-800">' + esc(r.perKgText) + (r.interval ? ' ' + esc(r.interval) : '') + '</div>'
+          +   '<div class="text-base text-gray-800">' + esc(r.perKgText) + (r.interval ? ' ' + esc(r.interval) : '') + '</div>'
           +   vol
           + '</div>'
-          + '<div class="flex-1 bg-cyan-50 border border-cyan-200 rounded p-1.5 flex flex-col justify-center">'
-          +   '<div class="text-xs text-cyan-600 font-bold mb-0.5">每劑</div>'
-          +   '<div class="text-base font-bold text-cyan-800 leading-tight">' + range(r.min, r.max) + ' ' + esc(r.unit)
+          + '<div class="flex-1 bg-cyan-50 border border-cyan-200 rounded-lg p-3 flex flex-col justify-center">'
+          +   '<div class="text-sm text-cyan-600 font-bold mb-1">每劑</div>'
+          +   '<div class="text-xl font-bold text-cyan-800 leading-tight">' + range(r.min, r.max) + ' ' + esc(r.unit)
           +     (r.interval ? ' ' + esc(r.interval) : '') + '</div>'
           + '</div></div>';
       }).join('<div class="h-1"></div>');
@@ -69,11 +69,11 @@
       (drug.notes || []).forEach(function (n) { extra.push(n); });
       var extraHtml = extra.length
         ? '<div class="mt-1 space-y-0.5">' + extra.map(function (t) {
-            return '<div class="text-[11px] text-amber-900 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5">' + esc(t) + '</div>';
+            return '<div class="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded px-3 py-1.5">' + esc(t) + '</div>';
           }).join('') + '</div>' : '';
 
       box.innerHTML = '<div class="border-t border-gray-300 pt-2 mt-2">'
-        + '<div class="text-xs text-gray-600 mb-1"><span class="font-bold text-gray-800">' + esc(drug.name) + '</span>'
+        + '<div class="text-sm text-gray-600 mb-1"><span class="font-bold text-gray-800">' + esc(drug.name) + '</span>'
         + (drug.route ? ' · ' + esc(drug.route) : '') + '</div>'
         + rowsHtml + extraHtml + '</div>';
 
@@ -93,7 +93,7 @@
       var r = L.reviewOrder(row, parseFloat($('miscOrderedDose').value));
       var box = $('miscReviewResult'); box.classList.remove('hidden');
       if (r.verdict === 'n/a') {
-        box.innerHTML = '<div class="text-xs rounded border px-2 py-1 bg-gray-50 border-gray-200 text-gray-700">' + esc(r.text) + '</div>';
+        box.innerHTML = '<div class="text-sm rounded border px-3 py-2 bg-gray-50 border-gray-200 text-gray-700">' + esc(r.text) + '</div>';
         return;
       }
       var map = {
@@ -102,9 +102,9 @@
         low:   ['bg-red-100 border-red-300 text-red-900', '❌', '低於本表下限'],
       }[r.verdict];
       var dev = r.deviation ? '（' + (r.deviation > 0 ? '+' : '') + Math.round(r.deviation) + '%）' : '';
-      box.innerHTML = '<div class="rounded border px-2 py-1.5 text-center ' + map[0] + '">'
-        + '<div class="text-sm font-bold">' + map[1] + ' ' + map[2] + ' ' + dev + '</div>'
-        + '<div class="text-[11px] opacity-80 mt-0.5">' + esc(r.row.label) + ' 本表每劑 ' + range(r.row.min, r.row.max)
+      box.innerHTML = '<div class="rounded border px-3 py-2.5 text-center ' + map[0] + '">'
+        + '<div class="text-base font-bold">' + map[1] + ' ' + map[2] + ' ' + dev + '</div>'
+        + '<div class="text-sm opacity-80 mt-1">' + esc(r.row.label) + ' 本表每劑 ' + range(r.row.min, r.row.max)
         + ' ' + esc(r.row.unit) + '　你輸入 ' + fmt(r.ordered) + ' ' + esc(r.row.unit) + '</div></div>';
     }
 
