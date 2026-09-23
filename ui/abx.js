@@ -97,12 +97,14 @@ document.addEventListener('DOMContentLoaded', function () {
           + esc(ew.reason) + '）　對應 <b class="text-gray-700">' + esc(sel.label) + '</b></div>';
         var warns = L.warnings(drug, pt.pmaWeeks || 0);
         if (res.ok && res.intervalNote) warns.unshift(res.intervalNote);
+        L.boundaryNotes(ew.g, pt.ageDays).reverse().forEach(function (n) { warns.unshift(n); });
         var warnHtml = warns.map(function (w) { return warnBox('amber', w); }).join('');
 
         if (!res.ok) {
           body = meta + warnBox('red', res.reason)
             + (res.freeText || res.raw ? '<div class="mt-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600">原文：' + esc(res.freeText || res.raw) + '</div>' : '')
             + R.stepsHtml(L.explain(drug, sel, res, ew, ew.g))
+            + R.bandTableHtml(D.bands, drug.doses, sel.band, D.source)
             + R.guideHtml(ADMIN[drug.name]) + warnHtml;
         } else {
           var pd = L.perDose(res, ew.g), dt = L.dailyTotal(res, ew.g);
@@ -122,6 +124,7 @@ document.addEventListener('DOMContentLoaded', function () {
             +   '</div>'
             + '</div>'
             + R.stepsHtml(L.explain(drug, sel, res, ew, ew.g))
+            + R.bandTableHtml(D.bands, drug.doses, sel.band, D.source)
             + R.guideHtml(ADMIN[drug.name])
             + reviewHtml(idx, res, pd)
             + warnHtml;

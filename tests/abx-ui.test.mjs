@@ -170,5 +170,19 @@ review(1, 125);
 has('第二張卡的覆核不影響第一張', text('abxResult'), '符合本表建議');
 is('只有一個覆核結果', (text('abxResult').match(/符合本表建議|高於本表上限|低於本表下限/g) || []).length, 1);
 
+// ── 來源小表與分界提醒（2026-09-24 新增）──────────────
+has('來源小表列出該藥五格並標出出處',
+  run({ drug: 'Cefazolin', bw: 1500, days: 3 }),
+  '來源對照', '本表該藥的 5 格', '25 q12h', '25 q8h', '50 q12h', '50 q8h', 'Remington');
+has('無建議劑量的格顯示為破折號',
+  run({ drug: 'Ciprofloxacin', bw: 1500, days: 10 }), '來源對照', '10-20 q24h', '20-30 q12h', '—');
+has('拒答時也附來源小表（看得到其他格有沒有值）',
+  run({ drug: 'Ciprofloxacin', bw: 1000, days: 3 }), '本表於此體重／日齡無建議劑量', '來源對照');
+has('2000 g 正好在分界上會提醒', run({ drug: 'Cefazolin', bw: 2000, days: 3 }), '正好在 2000 g 分界上', '非「>2000 g」');
+has('1950 g 接近分界會提醒', run({ drug: 'Cefazolin', bw: 1950, days: 3 }), '距 2000 g 分界僅 50 g');
+has('d7 正好在日齡分界上會提醒', run({ drug: 'Cefazolin', bw: 2500, days: 7 }), '第 7 天仍屬前一欄');
+has('一般情況不出現分界提醒',
+  run({ drug: 'Cefazolin', bw: 2500, days: 3 }).includes('分界') ? 'HAS' : 'NONE', 'NONE');
+
 console.log(`\n通過 ${pass} ／ 失敗 ${fail}`);
 process.exit(fail ? 1 : 0);

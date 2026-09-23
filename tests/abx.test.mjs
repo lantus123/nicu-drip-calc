@@ -89,5 +89,17 @@ eq('Gentamicin PMA38 不出註2', L.warnings(drug('Gentamicin', { regimen: 'ODD'
 eq('Metronidazole PMA41 出 Q6H', L.warnings(drug('Metronidazole'), 41).some(w => w.includes('Q6H')), true);
 eq('Pip/tazo 導向 Piperacillin', L.warnings(drug('Piperacillin/tazobactam'), 38)[0].includes('Piperacillin'), true);
 
+// ── 分界提醒（2026-09-24 新增）──────────────────────────
+eq('2000 g 正好在分界上會提醒', L.boundaryNotes(2000, 3).some(n => n.includes('非「>2000 g」')), true);
+eq('1200 g 正好在分界上會提醒', L.boundaryNotes(1200, 3).length > 0, true);
+eq('1950 g 距分界 50 g 會提醒', L.boundaryNotes(1950, 3)[0].includes('50 g'), true);
+eq('1850 g 距分界 150 g 不提醒（體重）', L.boundaryNotes(1850, 3).filter(n => n.includes('體重')).length, 0);
+eq('d7 正好在日齡分界上會提醒', L.boundaryNotes(2500, 7).some(n => n.includes('第 7 天')), true);
+eq('d8 距日齡分界 1 天會提醒', L.boundaryNotes(2500, 8).some(n => n.includes('僅 1 天')), true);
+eq('d20 不提醒', L.boundaryNotes(1500, 20).length, 0);
+eq('<1200 g 的日齡分界是 28 天', L.boundaryNotes(1000, 28).some(n => n.includes('第 28 天')), true);
+eq('<1200 g 不用 7 天分界', L.boundaryNotes(1000, 7).length, 0);
+eq('缺體重時不提醒', L.boundaryNotes(0, 3).length, 0);
+
 console.log(`\n通過 ${pass} ／ 失敗 ${fail}`);
 process.exit(fail ? 1 : 0);

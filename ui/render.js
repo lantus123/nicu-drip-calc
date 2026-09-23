@@ -42,5 +42,41 @@
       + '</div></details>';
   }
 
-  root.UiRender = { esc: esc, stepsHtml: stepsHtml, guideHtml: guideHtml };
+  // 來源小表：重建該藥那一列，標出用了哪一格。
+  // 刻意不重製原始表格的版面，只呈現該藥的五個數值（事實），並附出處。
+  // bands: [{id, weight, age}]；values: {bandId: 原文或 null}；activeId: 目前選中的格
+  function bandTableHtml(bands, values, activeId, source) {
+    if (!bands || !bands.length) return '';
+    // 相鄰且同體重帶者合併表頭
+    var groups = [];
+    bands.forEach(function (b) {
+      var last = groups[groups.length - 1];
+      if (last && last.weight === b.weight) last.span += 1;
+      else groups.push({ weight: b.weight, span: 1 });
+    });
+    var th = 'border border-gray-200 px-2 py-1 text-center font-semibold text-gray-600';
+    var head1 = groups.map(function (g) {
+      return '<th colspan="' + g.span + '" class="' + th + ' bg-gray-100">' + esc(g.weight) + '</th>';
+    }).join('');
+    var head2 = bands.map(function (b) {
+      return '<th class="' + th + ' bg-gray-50 font-normal">' + esc(b.age) + '</th>';
+    }).join('');
+    var row = bands.map(function (b) {
+      var v = values[b.id];
+      var on = b.id === activeId;
+      return '<td class="border px-2 py-1.5 text-center whitespace-nowrap '
+        + (on ? 'border-cyan-500 bg-cyan-100 font-bold text-cyan-900 ring-2 ring-inset ring-cyan-500'
+              : 'border-gray-200 ' + (v == null ? 'text-gray-300' : 'text-gray-600'))
+        + '">' + (v == null ? '—' : esc(v)) + '</td>';
+    }).join('');
+    return '<details class="mt-3">'
+      + '<summary class="text-sm font-semibold text-cyan-700 cursor-pointer select-none hover:underline">來源對照（本表該藥的 ' + bands.length + ' 格，已標出用了哪一格）</summary>'
+      + '<div class="mt-2 overflow-x-auto">'
+      + '<table class="w-full border-collapse text-sm"><thead><tr>' + head1 + '</tr><tr>' + head2 + '</tr></thead>'
+      + '<tbody><tr>' + row + '</tr></tbody></table>'
+      + (source ? '<div class="mt-1 text-xs text-gray-400">' + esc(source) + '</div>' : '')
+      + '</div></details>';
+  }
+
+  root.UiRender = { esc: esc, stepsHtml: stepsHtml, guideHtml: guideHtml, bandTableHtml: bandTableHtml };
 }(typeof self !== 'undefined' ? self : this));
