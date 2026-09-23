@@ -2,6 +2,7 @@
   // ───────── Surfactant / AOP / PDA 分頁 ─────────
   document.addEventListener('DOMContentLoaded', function () {
     var D = window.MISC_DATA, L = window.MiscLogic;
+  var R = window.UiRender;
     var $ = function (id) { return document.getElementById(id); };
     var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); };
     var fmt = function (n) { return Math.round(n * 100) / 100; };
@@ -75,7 +76,9 @@
       box.innerHTML = '<div class="border-t border-gray-300 pt-2 mt-2">'
         + '<div class="text-sm text-gray-600 mb-1"><span class="font-bold text-gray-800">' + esc(drug.name) + '</span>'
         + (drug.route ? ' · ' + esc(drug.route) : '') + '</div>'
-        + rowsHtml + extraHtml + '</div>';
+        + rowsHtml
+        + R.stepsHtml(L.explain(drug, w))
+        + extraHtml + '</div>';
 
       lastRows = out.rows;
       var sel = $('miscReviewRow'); sel.innerHTML = '';

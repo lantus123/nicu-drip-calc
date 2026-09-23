@@ -29,6 +29,8 @@ globalThis.window = globalThis;
 globalThis.ABX_DATA = require(new URL('../data/abx-data.js', import.meta.url).pathname);
 globalThis.AbxLogic = require(new URL('../lib/abx-logic.js', import.meta.url).pathname);
 globalThis.ABX_ADMIN = require(new URL('../data/abx-admin.js', import.meta.url).pathname);
+globalThis.self = globalThis;
+await import(new URL('../ui/render.js', import.meta.url));
 vm.runInThisContext('(function(){' + code + '})()');
 docHandlers.DOMContentLoaded();
 

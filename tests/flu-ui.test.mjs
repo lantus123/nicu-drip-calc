@@ -28,6 +28,8 @@ globalThis.document = document;
 globalThis.window = globalThis;
 globalThis.FLU_DATA = require(new URL('../data/flu-data.js', import.meta.url).pathname);
 globalThis.FluLogic = require(new URL('../lib/flu-logic.js', import.meta.url).pathname);
+globalThis.self = globalThis;
+await import(new URL('../ui/render.js', import.meta.url));
 vm.runInThisContext('(function(){' + code + '})()');
 docHandlers.DOMContentLoaded();
 
@@ -106,6 +108,19 @@ run({ mode: 'treatment', w: 1000, ga: 28, pna: 10 });
 has('覆核 loading 20 → 符合', review('Loading', 20), '符合本表建議');
 has('覆核 loading 30 → 偏高 +20%', review('Loading', 30), '高於本表上限', '+20%');
 has('覆核可切到 maintenance', review('Maintenance', 5), '低於本表下限');
+
+// ── 計算過程（2026-09-23 新增）──────────────────────────
+has('治療模式逐步列出，含 interval 依據與輸注限制',
+  run({ mode: 'treatment', w: 1000, ga: 28, pna: 10 }),
+  '計算過程', '1000 g = 1 kg', 'GA <30 週，日齡 0-14 天', 'q48h',
+  '12~25 mg/kg × 1 kg', '稀釋容積', '÷ 2 mg/mL', '最短輸注', '2 小時');
+has('腎功能調整出現在計算過程且乘進去',
+  run({ mode: 'treatment', w: 1000, ga: 28, pna: 10, ccr: 40 }),
+  '腎功能調整', '× 0.5', '12~25 mg/kg × 1 kg × 0.5', '6~12.5 mg');
+has('預防模式顯示進位那一步',
+  run({ mode: 'prophylaxis', w: 1100 }), '3 mg/kg × 1.1 kg', '3.3 mg', '無條件進位', '4 mg');
+has('600 mg 級距改由輸注速率決定最短時間',
+  run({ mode: 'indication', w: 50000, indication: 'systemic' }), '200 mg/hr');
 
 console.log(`\n通過 ${pass} ／ 失敗 ${fail}`);
 process.exit(fail ? 1 : 0);

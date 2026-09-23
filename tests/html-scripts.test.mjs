@@ -19,7 +19,7 @@ check('HTML 內沒有 inline script（介面邏輯一律外置）', inline.lengt
 
 // 逐支外部腳本實際 parse
 const srcs = opens.map(o => (o[0].match(/src="([^"]+)"/) || [])[1]).filter(Boolean).filter(s => !/^https?:/.test(s));
-check('外部腳本數 = 11', srcs.length === 11, `實際 ${srcs.length}: ${srcs.join(', ')}`);
+check('外部腳本數 = 12', srcs.length === 12, `實際 ${srcs.length}: ${srcs.join(', ')}`);
 for (const src of srcs) {
   let err = null;
   try { new Function(fs.readFileSync(new URL(src, root), 'utf8')); } catch (e) { err = e.message; }
@@ -32,6 +32,8 @@ check('資料檔都排在對應邏輯檔之前',
   at('data/abx-data.js') < at('lib/abx-logic.js') &&
   at('data/misc-data.js') < at('lib/misc-logic.js') &&
   at('data/flu-data.js') < at('lib/flu-logic.js'), '載入順序錯');
+check('共用 render 排在各分頁介面檔之前',
+  at('ui/render.js') < Math.min(at('ui/drip.js'), at('ui/abx.js'), at('ui/misc.js'), at('ui/flu.js')), '載入順序錯');
 check('邏輯檔都排在介面檔之前',
   Math.max(at('lib/abx-logic.js'), at('lib/misc-logic.js'), at('lib/flu-logic.js')) < Math.min(at('ui/abx.js'), at('ui/misc.js'), at('ui/flu.js')), '載入順序錯');
 

@@ -2,6 +2,9 @@
   // ───────── 抗生素劑量分頁 ─────────
   document.addEventListener('DOMContentLoaded', function () {
     var D = window.ABX_DATA, L = window.AbxLogic, ADMIN = window.ABX_ADMIN || {};
+  var R = window.UiRender;
+  var stepsHtml = R.stepsHtml;
+  var adminHtml = function (drug) { return R.guideHtml(ADMIN[drug.name]); };
     var $ = function (id) { return document.getElementById(id); };
 
     // 分頁切換
@@ -129,41 +132,6 @@
     lastResolved = res; lastWeight = ew.g;
       $('abxOrderedInterval').value = res.interval;
       $('abxReviewBox').classList.remove('hidden');
-    }
-
-    // 計算過程：預設收合，展開後每一行都能獨立驗算
-    function stepsHtml(steps) {
-      return '<details open class="mt-4">'
-        + '<summary class="text-sm font-semibold text-cyan-700 cursor-pointer select-none hover:underline">計算過程（' + steps.length + ' 步）</summary>'
-        + '<div class="steps mt-2 border border-gray-200 rounded-lg overflow-hidden">'
-        + steps.map(function (st, i) {
-            return '<div class="flex gap-2 px-3 py-2 text-sm ' + (i % 2 ? 'bg-white' : 'bg-gray-50') + (st.emphasis ? ' font-semibold' : '') + '">'
-              + '<div class="w-24 shrink-0 font-medium text-gray-500">' + esc(st.label) + '</div>'
-              + '<div class="flex-1 text-gray-600">' + esc(st.detail || '') + '</div>'
-              + '<div class="shrink-0 text-gray-900">' + esc(st.value) + '</div>'
-              + '</div>';
-          }).join('')
-        + '</div></details>';
-    }
-
-    // 給藥指引：僅來源文件明載的中性事實
-    function adminHtml(drug) {
-      var a = ADMIN[drug.name];
-      if (!a) return '';
-      var items = []
-        .concat(a.loading ? [{ t: a.loading, warn: false }] : [])
-        .concat((a.notes || []).map(function (x) { return { t: x, warn: false }; }))
-        .concat((a.cautions || []).map(function (x) { return { t: x, warn: true }; }));
-      if (!items.length) return '';
-      return '<details class="mt-1">'
-        + '<summary class="text-sm text-cyan-700 cursor-pointer select-none hover:underline">▸ 給藥指引（' + items.length + ' 項）</summary>'
-        + '<div class="mt-1 space-y-0.5">'
-        + items.map(function (it) {
-            return '<div class="text-sm rounded px-3 py-1.5 border '
-              + (it.warn ? 'bg-red-50 border-red-200 text-red-900' : 'bg-slate-50 border-slate-200 text-slate-700')
-              + '">' + (it.warn ? '⚠ ' : '') + esc(it.t) + '</div>';
-          }).join('')
-        + '</div></details>';
     }
 
     function note(color, text) {

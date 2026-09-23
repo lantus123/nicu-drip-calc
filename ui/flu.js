@@ -2,6 +2,7 @@
   // ───────── Fluconazole 分頁 ─────────
   document.addEventListener('DOMContentLoaded', function () {
     var D = window.FLU_DATA, L = window.FluLogic;
+  var R = window.UiRender;
     var $ = function (id) { return document.getElementById(id); };
     var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]; }); };
     var fmt = function (n) { return Math.round(n * 100) / 100; };
@@ -87,7 +88,8 @@
         + '<div class="text-sm text-gray-600 mb-1"><span class="font-bold text-gray-800">' + esc(D.drug) + '</span>'
         + (out.indication ? ' · ' + esc(out.indication.name) : '') + '</div>'
         + rowsHtml
-        + '<div class="mt-1 space-y-0.5">' + notes.map(function (t) {
+        + R.stepsHtml(L.explain(D, out, w))
+        + '<div class="mt-3 space-y-1">' + notes.map(function (t) {
             return '<div class="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded px-3 py-1.5">' + esc(t) + '</div>';
           }).join('') + '</div>'
         + '</div>';

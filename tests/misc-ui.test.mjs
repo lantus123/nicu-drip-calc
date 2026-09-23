@@ -28,6 +28,8 @@ globalThis.document = document;
 globalThis.window = globalThis;
 globalThis.MISC_DATA = require(new URL('../data/misc-data.js', import.meta.url).pathname);
 globalThis.MiscLogic = require(new URL('../lib/misc-logic.js', import.meta.url).pathname);
+globalThis.self = globalThis;
+await import(new URL('../ui/render.js', import.meta.url));
 vm.runInThisContext('(function(){' + code + '})()');
 docHandlers.DOMContentLoaded();
 
@@ -82,6 +84,22 @@ has('覆核 maintenance 8mg → 符合', review('Maintenance', 8), '符合本表
 has('覆核 maintenance 24mg → 偏高 +100%', review('Maintenance', 24), '高於本表上限', '+100%');
 has('覆核 loading 10mg → 偏低', review('Loading', 10), '低於本表下限');
 has('覆核可切換項目', review('Loading', 24), '符合本表建議');
+
+// ── 計算過程（2026-09-23 新增）──────────────────────────
+has('Curosurf 列出逐步換算',
+  run('curosurf', 1500), '計算過程', '體重', '1500 g = 1.5 kg', '2.5 mL/kg × 1.5 kg', '3.75 mL');
+has('Aminophylline 口服換算入列',
+  run('aminophylline', 1500), '抽取容積', '7.5 mg ÷ 5.34 mg/mL', '1.4 mL');
+has('Aminophylline 每日總量',
+  text('miscResult'), '每日總量', '24 ÷ 12 小時', '6 mg/day', '4 mg/kg/day');
+has('Ibuprofen 最小稀釋量入列',
+  run('ibuprofen_high', 1500), '最小稀釋量', '30 mg ÷ 4 mg/mL', '7.5 mL');
+has('Twice weekly 不算每日總量',
+  run('curosurf', 1500).includes('每日總量') ? 'HAS' : 'NONE', 'NONE');
+// 沒有體重就沒有可推導的內容，直接給錯誤訊息即可，不渲染步驟區
+has('沒填體重時只給錯誤訊息', run('curosurf', ''), '請輸入體重');
+has('沒填體重時不顯示空的計算過程',
+  run('curosurf', '').includes('計算過程') ? 'HAS' : 'NONE', 'NONE');
 
 console.log(`\n通過 ${pass} ／ 失敗 ${fail}`);
 process.exit(fail ? 1 : 0);
