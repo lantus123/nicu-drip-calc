@@ -43,6 +43,8 @@ globalThis.window = globalThis;
 globalThis.ABX_DATA = require(new URL('../data/abx-data.js', import.meta.url).pathname);
 globalThis.AbxLogic = require(new URL('../lib/abx-logic.js', import.meta.url).pathname);
 globalThis.ABX_ADMIN = require(new URL('../data/abx-admin.js', import.meta.url).pathname);
+globalThis.ABX_PMA_DATA = require(new URL('../data/abx-pma-data.js', import.meta.url).pathname);
+globalThis.AbxPmaLogic = require(new URL('../lib/abx-pma-logic.js', import.meta.url).pathname);
 globalThis.self = globalThis;
 globalThis.Patient = require(new URL('../lib/patient.js', import.meta.url).pathname);
 await import(new URL('../ui/render.js', import.meta.url));
@@ -213,6 +215,44 @@ const order2 = run({ drug: 'Gentamicin', bw: 1500, days: 3, levels: true });
 is('血中濃度退場訊息排在最前段', order2.indexOf('請依血中濃度調整') < order2.indexOf('計算過程'), true);
 const order3 = run({ drug: 'Cefazolin', bw: 2500, days: 3 });
 is('覆核排在計算過程之前', order3.indexOf('覆核：我打算開每劑') < order3.indexOf('計算過程'), true);
+
+// ── PMA 型藥品併入同一個分頁（2026-09-24）──────────────
+clearAll();
+$('abxDrug').value = 'Ampicillin'; $('abxDrug')._h.change();
+is('Ampicillin 出現在同一個藥品下拉', $('abxDrug').children.some(o => o.value === 'Ampicillin'), true);
+has('Ampicillin 有三種用法可選', $('abxVariant').children.map(o => o.textContent).join('|'), 'Usual', 'Sepsis', 'Meningitis');
+
+setPatient({ bw: 1200, days: 3, ga: 28 });
+addDrug('Ampicillin', 'Usual');
+has('Ampicillin 1.2kg PMA28.4 d3 → 60 mg q12h',
+  text('abxResult'), 'Ampicillin', 'Usual', 'PMA', '每劑', '60 mg q12h', '每日總量 120 mg/day');
+has('依 PMA 帶判定並顯示依據', text('abxResult'), 'PMA <30 週，日齡 0-28 天');
+has('PMA 判讀說明以警示呈現', text('abxResult'), '完成週數');
+has('計算過程含 PMA 一行', text('abxResult'), '計算過程', 'PMA', '出生 GA ＋ 日齡 ÷ 7');
+has('給藥指引含每日上限', text('abxResult'), '每日上限 400 mg/kg/day');
+has('出處未確認會顯示在畫面上', text('abxResult'), '出處待確認');
+
+clearAll(); setPatient({ bw: 1000, days: 20, ga: 26 });
+addDrug('Vancomycin', 'Bacteremia');
+has('Vancomycin PMA28.9 d20 → q12h、每劑 10 mg', text('abxResult'), 'Vancomycin', '10 mg q12h');
+has('Vancomycin 顯示 MIC 警告', text('abxResult'), 'resistance');
+
+clearAll(); setPatient({ bw: 3000, days: 20, ga: 38 });
+addDrug('Ampicillin/sulbactam (Unasyn)', '標準');
+has('Unasyn 來源未涵蓋的組合會拒答', text('abxResult'), '來源未涵蓋', '無建議 interval');
+
+// band 型與 pma 型可同時選入
+clearAll(); setPatient({ bw: 1200, days: 3, ga: 28 });
+addDrug('Ampicillin', 'Usual'); addDrug('Gentamicin', 'ODD');
+has('兩種查表型態可並存', text('abxResult'), 'Ampicillin', 'Gentamicin');
+is('兩張卡', (text('abxResult').match(/計算過程/g) || []).length, 2);
+has('完整劑量表只標 band 型的那一格', fullText(), '已標出選用的 1 格');
+
+// 覆核在 pma 型卡片上也要能用
+clearAll(); setPatient({ bw: 1200, days: 3, ga: 28 });
+addDrug('Ampicillin', 'Usual');
+has('pma 卡片覆核 60 → 符合', review(0, 60), '符合本表建議');
+has('pma 卡片覆核 120 → 偏高', review(0, 120), '高於本表上限');
 
 console.log(`\n通過 ${pass} ／ 失敗 ${fail}`);
 process.exit(fail ? 1 : 0);

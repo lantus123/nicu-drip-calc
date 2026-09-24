@@ -1,6 +1,7 @@
 // 抗生素劑量分頁的介面邏輯。可同時選多種藥，每種各一張卡。
 document.addEventListener('DOMContentLoaded', function () {
   var D = window.ABX_DATA, L = window.AbxLogic, ADMIN = window.ABX_ADMIN || {};
+  var PD = window.ABX_PMA_DATA, PL = window.AbxPmaLogic;
   var R = window.UiRender, P = window.Patient;
   var $ = function (id) { return document.getElementById(id); };
   var esc = R.esc;
@@ -22,14 +23,28 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   // 藥品下拉：同名多項（適應症／給法）收成第二個下拉，Gentamicin 預設 ODD
+  // 兩種查表型態統一成 item：band =「體重帶 × 日齡」；pma =「PMA × 日齡」
   var byName = {};
-  D.drugs.forEach(function (d) { (byName[d.name] = byName[d.name] || []).push(d); });
+  D.drugs.forEach(function (d) {
+    (byName[d.name] = byName[d.name] || []).push({
+      id: d.id, kind: 'band', name: d.name, route: d.route,
+      variant: d.indication || d.regimen || null, band: d,
+    });
+  });
+  PD.drugs.forEach(function (d) {
+    d.regimens.forEach(function (r) {
+      (byName[d.name] = byName[d.name] || []).push({
+        id: d.id + ':' + r.id, kind: 'pma', name: d.name, route: d.route,
+        variant: r.label, pmaDrug: d, regimen: r,
+      });
+    });
+  });
   Object.keys(byName).sort().forEach(function (name) {
     var o = document.createElement('option'); o.value = name; o.textContent = name;
     $('abxDrug').appendChild(o);
   });
 
-  function variantLabel(d) { return d.indication || d.regimen || '標準'; }
+  function variantLabel(it) { return it.variant || '標準'; }
   function refreshVariants() {
     var list = byName[$('abxDrug').value] || [], wrap = $('abxVariantWrap'), sel = $('abxVariant');
     sel.innerHTML = '';
@@ -39,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function () {
       sel.appendChild(o);
     });
     var odd = -1;
-    list.forEach(function (d, i) { if (d.regimen === 'ODD' && odd < 0) odd = i; });
+    list.forEach(function (it, i) { if (it.variant === 'ODD' && odd < 0) odd = i; });
     sel.value = String(odd >= 0 ? odd : 0);
     wrap.classList.remove('hidden');
   }
@@ -57,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function () {
   function add() {
     var drug = currentDrug();
     if (!drug) return;
-    var dup = selected.filter(function (d) { return d.id === drug.id; }).length > 0;
+    var dup = selected.filter(function (it) { return it.id === drug.id; }).length > 0;
     if (!dup) selected.push(drug);
     renderAll();
   }
@@ -79,25 +94,31 @@ document.addEventListener('DOMContentLoaded', function () {
     var pt = P.read(), ew = P.effectiveWeight(pt), active = {};
     if (ew.g) {
       var sel = L.selectBand(ew.g, pt.ageDays);
-      if (!sel.error) selected.forEach(function (d) {
-        var res = L.resolveDose(d, sel, { hasLevels: $('abxHasLevels').checked });
-        if (res.ok || d.doses[sel.band] != null) active[d.id] = sel.band;
+      if (!sel.error) selected.forEach(function (it) {
+        if (it.kind !== 'band') return;   // PMA 型的藥不在這張表裡
+        var res = L.resolveDose(it.band, sel, { hasLevels: $('abxHasLevels').checked });
+        if (res.ok || it.band.doses[sel.band] != null) active[it.band.id] = sel.band;
       });
     }
     $('abxFullTable').innerHTML = R.fullTableHtml(D, active, false);
   }
 
-  function cardHtml(drug, idx) {
+  function cardHtml(item, idx) {
+    var drug = item.kind === 'band' ? item.band : item.pmaDrug;
     var pt = P.read();
     var ew = P.effectiveWeight(pt);
     var head = '<div class="flex items-start justify-between gap-2">'
-      + '<div class="text-base"><span class="font-bold text-gray-900">' + esc(drug.name) + '</span>'
-      + (drug.indication || drug.regimen ? ' <span class="text-gray-500">(' + esc(variantLabel(drug)) + ')</span>' : '')
-      + (drug.route ? ' <span class="text-sm text-gray-500">· ' + esc(drug.route) + '</span>' : '') + '</div>'
+      + '<div class="text-base"><span class="font-bold text-gray-900">' + esc(item.name) + '</span>'
+      + (item.variant ? ' <span class="text-gray-500">(' + esc(item.variant) + ')</span>' : '')
+      + (item.route ? ' <span class="text-sm text-gray-500">· ' + esc(item.route) + '</span>' : '') + '</div>'
       + '<button data-remove="' + idx + '" class="btn shrink-0 rounded px-2 py-1 text-sm text-gray-400 hover:bg-gray-100 hover:text-gray-700" title="移除">✕</button>'
       + '</div>';
 
     var body;
+    if (item.kind === 'pma') {
+      body = pmaBody(item, idx, pt);
+      return '<article class="mb-4 rounded-xl border border-gray-200 p-4">' + head + body + '</article>';
+    }
     if (!ew.g) {
       body = warnBox('red', ew.reason);
     } else {
@@ -145,6 +166,75 @@ document.addEventListener('DOMContentLoaded', function () {
     return '<article class="mb-4 rounded-xl border border-gray-200 p-4">' + head + body + '</article>';
   }
 
+  // PMA × 日齡型：用當下體重（未填退回出生體重），interval 依 PMA 判定
+  function pmaBody(item, idx, pt) {
+    var w = P.currentWeight(pt);
+    var out = PL.compute(item.pmaDrug, item.regimen, w.g, pt.pmaWeeks, pt.ageDays);
+    var meta = '<div class="mt-1 text-sm text-gray-500">'
+      + (w.g ? '使用體重 <b class="text-gray-700">' + w.g + ' g</b>（' + esc(w.reason) + '）' : '')
+      + (pt.pmaWeeks ? '　PMA <b class="text-gray-700">' + (Math.round(pt.pmaWeeks * 10) / 10) + ' 週</b>' : '')
+      + '</div>';
+
+    var warns = [item.pmaDrug.kind === 'pma' ? PD.pmaWordingNote : null]
+      .concat(item.pmaDrug.cautions || [])
+      .concat(out.ok && out.exceeded ? [out.exceeded] : [])
+      .filter(Boolean);
+    var warnHtml = warns.length ? '<div class="mt-2 space-y-1">'
+      + warns.map(function (t) { return warnBox('amber', t); }).join('') + '</div>' : '';
+
+    if (!out.ok) {
+      return meta + warnHtml + warnBox('red', out.reason)
+        + R.stepsHtml(PL.explain(out, w.g, pt.pmaWeeks)) + pmaGuide(item);
+    }
+    var pdose = out.perDose;
+    var daily = out.single ? '' : '<div class="mt-1 text-base text-cyan-700">每日總量 '
+      + range(out.perDay.min, out.perDay.max) + ' ' + esc(pdose.unit) + '/day（'
+      + range(out.perKgPerDay.min, out.perKgPerDay.max) + ' ' + esc(pdose.unit) + '/kg/day）</div>';
+    return meta + warnHtml
+      + '<div class="mt-3 rounded-xl border-2 border-cyan-300 bg-cyan-50 p-4">'
+      +   '<div class="text-sm font-bold uppercase tracking-wide text-cyan-600">每劑</div>'
+      +   '<div class="text-3xl font-bold leading-tight text-cyan-900">' + range(pdose.min, pdose.max) + ' ' + esc(pdose.unit)
+      +     ' <span class="text-2xl">' + (out.single ? '單次' : esc(out.interval)) + '</span></div>'
+      +   daily
+      + '</div>'
+      + '<div class="mt-2 text-sm text-gray-500">依 <b class="font-semibold text-gray-700">' + esc(out.bandLabel) + '</b>'
+      +   '　本表 ' + (item.regimen.basis === 'perDay'
+            ? range(item.regimen.min, item.regimen.max) + ' ' + esc(pdose.unit) + '/kg/day'
+            : range(item.regimen.min, item.regimen.max) + ' ' + esc(pdose.unit) + '/kg/dose') + '</div>'
+      + pmaReviewHtml(idx, out)
+      + R.stepsHtml(PL.explain(out, w.g, pt.pmaWeeks))
+      + pmaGuide(item);
+  }
+
+  function pmaGuide(item) {
+    var g = { notes: [], cautions: [] };
+    if (item.pmaDrug.vial) g.notes.push(item.pmaDrug.vial);
+    if (item.pmaDrug.route) g.notes.push('給藥途徑：' + item.pmaDrug.route);
+    if (item.pmaDrug.maxConcentration) g.notes.push('最高濃度 ' + item.pmaDrug.maxConcentration.value + ' '
+      + item.pmaDrug.maxConcentration.unit + (item.pmaDrug.maxConcentration.note ? '（' + item.pmaDrug.maxConcentration.note + '）' : ''));
+    if (item.pmaDrug.maxPerDay) g.cautions.push('每日上限 ' + item.pmaDrug.maxPerDay.value + ' ' + item.pmaDrug.maxPerDay.unit + '/kg/day');
+    (item.regimen.note ? [item.regimen.note] : []).forEach(function (n) { g.notes.push(n); });
+    g.notes.push('資料出處：' + PD.source);
+    return R.guideHtml(g);
+  }
+
+  function pmaReviewHtml(idx, out) {
+    var saved = reviewInput[idx] || {};
+    var opts = ['', 'q6h', 'q8h', 'q12h', 'q18h', 'q24h', 'q36h', 'q48h'].map(function (v) {
+      var chosen = (saved.interval !== undefined ? saved.interval : out.interval) === v;
+      return '<option value="' + v + '"' + (chosen ? ' selected' : '') + '>' + (v || '—') + '</option>';
+    }).join('');
+    var res = saved.verdict ? verdictHtml(saved.verdict) : '';
+    return '<div class="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3">'
+      + '<div class="flex flex-wrap items-end gap-3">'
+      +   '<div class="min-w-[140px] flex-1"><label class="compact-label">覆核：我打算開每劑</label>'
+      +     '<input type="number" step="0.1" data-dose="' + idx + '" value="' + (saved.dose === undefined ? '' : saved.dose) + '" placeholder="' + esc(out.perDose.unit) + '" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input"></div>'
+      +   '<div class="w-28"><label class="compact-label">Interval</label>'
+      +     '<select data-interval="' + idx + '" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">' + opts + '</select></div>'
+      +   '<button data-review="' + idx + '" class="btn h-11 whitespace-nowrap rounded-lg bg-slate-600 px-4 text-sm font-bold text-white hover:bg-slate-700">覆核</button>'
+      + '</div>' + res + '</div>';
+  }
+
   function warnBox(tone, text) {
     var cls = tone === 'red' ? 'bg-red-50 border-red-300 text-red-900' : 'bg-amber-50 border-amber-300 text-amber-900';
     return '<div class="rounded-lg border px-3 py-2 text-sm font-medium ' + cls + '">' + (tone === 'amber' ? '⚠ ' : '') + esc(text) + '</div>';
@@ -184,7 +274,7 @@ document.addEventListener('DOMContentLoaded', function () {
       + '<div class="text-center text-base font-bold">' + map[1] + ' ' + map[2] + ' ' + dev + '</div>'
       + R.rangeBarHtml(v.perDose.min, v.perDose.max, v.ordered, v.perDose.unit)
       + '<div class="text-center text-sm opacity-80">本表每劑 ' + range(v.perDose.min, v.perDose.max) + ' ' + esc(v.perDose.unit)
-      + ' ' + esc(v.perDose.interval) + '　你輸入 ' + fmt(v.ordered) + ' ' + esc(v.perDose.unit) + '</div>' + iv + '</div>';
+      + (v.perDose.interval ? ' ' + esc(v.perDose.interval) : '') + '　你輸入 ' + fmt(v.ordered) + ' ' + esc(v.perDose.unit) + '</div>' + iv + '</div>';
   }
 
   // 卡片是重繪出來的，因此用事件委派
@@ -200,10 +290,17 @@ document.addEventListener('DOMContentLoaded', function () {
       var box = $('abxResult');
       var doseEl = box.querySelector('[data-dose="' + i + '"]');
       var ivEl = box.querySelector('[data-interval="' + i + '"]');
-      var pt = P.read(), ew = P.effectiveWeight(pt);
-      var sel = L.selectBand(ew.g, pt.ageDays);
-      var res = L.resolveDose(selected[i], sel, { hasLevels: $('abxHasLevels').checked });
-      var v = L.reviewOrder(res, ew.g, parseFloat(doseEl.value), ivEl.value);
+      var pt = P.read(), item = selected[i], v;
+      if (item.kind === 'pma') {
+        var w = P.currentWeight(pt);
+        var out = PL.compute(item.pmaDrug, item.regimen, w.g, pt.pmaWeeks, pt.ageDays);
+        v = PL.reviewOrder(out, parseFloat(doseEl.value), ivEl.value);
+      } else {
+        var ew = P.effectiveWeight(pt);
+        var sel = L.selectBand(ew.g, pt.ageDays);
+        var res = L.resolveDose(item.band, sel, { hasLevels: $('abxHasLevels').checked });
+        v = L.reviewOrder(res, ew.g, parseFloat(doseEl.value), ivEl.value);
+      }
       reviewInput[i] = { dose: doseEl.value, interval: ivEl.value, verdict: v };
       renderAll();
     }

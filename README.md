@@ -118,6 +118,26 @@ Relapse 列缺 Daily therapy 與 duration，因此只提供 Day 1。
 
 重複選入同一藥不會產生第二張卡；每張卡可單獨移除，或按「清空」全部清掉。
 
+## 兩種查表型態
+
+抗生素分頁同時支援兩種 interval 判定方式，使用者不必在意某個藥屬於哪一種：
+
+| 型態 | 判定依據 | 藥品 | 資料檔 |
+|---|---|---|---|
+| `band` | 體重帶 × 日齡 | 24 種（Remington 表） | `data/abx-data.js` |
+| `pma` | **PMA × 日齡** | Ampicillin、Unasyn、Vancomycin | `data/abx-pma-data.js` |
+
+`pma` 型另支援「每日總量制」與「每劑制」兩種劑量基準：Ampicillin 給 mg/kg/day 再除以
+每日劑數；Vancomycin 直接給 mg/kg/dose 再乘回每日總量。單次給藥（Vancomycin PICC 移除前）
+不計每日總量、也不比對 interval。
+
+PMA 帶的寫法為「≤29／30-36／37-44／≥45 週」，字面上 29~30、36~37、44~45 之間有空隙，
+本工具以完成週數判讀為 `<30`／`<37`／`<45`／`≥45` 銜接，並在畫面上標示此判讀。
+
+來源未涵蓋的組合一律拒答（例如 Unasyn 在 PMA ≥37 週且日齡 >8 天但未滿 1 個月），不外推。
+
+`pma` 型的藥不在 Remington 表內，因此不會出現在完整劑量表的高亮中。
+
 ## 來源對照
 
 每張卡可展開「來源對照」，看到**該藥在本表的五個格**與目前用的是哪一格：
@@ -200,11 +220,13 @@ lib/patient.js      共用病人資料與「用哪個體重」的規則
 ui/render.js        各分頁共用的呈現元件（計算過程、指引、來源對照、範圍帶、完整表）
 ui/patient-bar.js   病人資料列的收合與摘要
 ui/                 各分頁的介面邏輯（drip / abx / misc / flu）
-data/abx-data.js    抗生素劑量查詢資料（程式產生，請勿手改）
+data/abx-data.js    抗生素劑量查詢資料（體重帶 × 日齡；程式產生，請勿手改）
+data/abx-pma-data.js  PMA × 日齡型抗生素（Ampicillin／Unasyn／Vancomycin）
 data/abx-admin.js   抗生素給藥指引（人工整理）
 data/misc-data.js   Surfactant／AOP／PDA 資料
 data/flu-data.js    Fluconazole 資料
 lib/abx-logic.js    抗生素選格／換算／覆核
+lib/abx-pma-logic.js  PMA 型 interval 判定與換算
 lib/misc-logic.js   其他藥物換算／覆核
 lib/flu-logic.js    Fluconazole 換算／腎功能調整／輸注限制／覆核
 tests/              node 原生執行，無相依套件
@@ -212,11 +234,12 @@ tests/              node 原生執行，無相依套件
 
 顯示的數值一律四捨五入至**小數第 2 位**（例：1.25 mL/kg × 1.5 kg = 1.875 → 顯示 1.88 mL）。
 
-測試（共 300 項）：
+測試（共 368 項）：
 
 ```bash
 node tests/abx.test.mjs       # 抗生素資料 + 選格 + 覆核 + 分界（60）
-node tests/abx-ui.test.mjs    # 抗生素分頁端到端＋多選＋來源對照＋完整表＋版面順序（59）
+node tests/abx-pma.test.mjs   # PMA × 日齡型抗生素（50）
+node tests/abx-ui.test.mjs    # 抗生素分頁端到端＋多選＋來源對照＋完整表＋PMA 型（75）
 node tests/misc.test.mjs      # 其他藥物資料 + 換算（30）
 node tests/misc-ui.test.mjs   # 其他藥物分頁端到端＋計算過程（24）
 node tests/flu.test.mjs       # Fluconazole 資料 + 換算 + 腎調整（48）
