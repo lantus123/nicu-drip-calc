@@ -118,7 +118,7 @@ has('Penicillin G 用 MU', run({ drug: 'Penicillin G', variant: 'sepsis', bw: 20
 has('GBS meningitis 12.5 MU', run({ drug: 'Penicillin G', variant: 'GBS meningitis', bw: 2000, days: 3 }), '12.5 MU/kg/dose', '25 MU');
 has('Clindamycin 範圍值不取中位數', run({ drug: 'Clindamycin', bw: 2000, days: 3 }), '5~7.5 mg/kg/dose', '10~15 mg');
 has('Teicoplanin 不計算但顯示原文', run({ drug: 'Teicoplanin (Targocid)', bw: 2500, days: 10 }), '不做自動計算', '16 loading');
-has('原文一併顯示可回溯', run({ drug: 'Cefotaxime (Claforan)', variant: 'meningitis', bw: 2500, days: 3 }), '原文：100 q12h');
+has('原文一併顯示可回溯', run({ drug: 'Cefotaxime (Claforan)', variant: 'meningitis', bw: 2500, days: 3 }), '原文「100 q12h」');
 has('缺出生體重 → 拒答', run({ drug: 'Cefazolin', bw: '', days: 3 }), '請輸入出生體重');
 
 // ── 計算過程與給藥指引 ──────────────────────────────────
@@ -205,6 +205,14 @@ has('改體重後整張表的標記跟著移動', fullText(), '已標出選用�
 clearAll();
 has('清空後標記消失', fullText(), '完整劑量表（29 列）');
 has('表格附出處', fullText(), 'Remington');
+
+// ── 版面順序（2026-09-24）：會改變劑量決策的警示必須排在數字前面 ──
+const order = run({ drug: 'Cefazolin', bw: 1950, days: 3 });
+is('分界警示排在「每劑」之前', order.indexOf('分界僅 50 g') < order.indexOf('每劑'), true);
+const order2 = run({ drug: 'Gentamicin', bw: 1500, days: 3, levels: true });
+is('血中濃度退場訊息排在最前段', order2.indexOf('請依血中濃度調整') < order2.indexOf('計算過程'), true);
+const order3 = run({ drug: 'Cefazolin', bw: 2500, days: 3 });
+is('覆核排在計算過程之前', order3.indexOf('覆核：我打算開每劑') < order3.indexOf('計算過程'), true);
 
 console.log(`\n通過 ${pass} ／ 失敗 ${fail}`);
 process.exit(fail ? 1 : 0);

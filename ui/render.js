@@ -10,7 +10,7 @@
   function stepsHtml(steps) {
     if (!steps || !steps.length) return '';
     return '<details open class="mt-4">'
-      + '<summary class="text-sm font-semibold text-cyan-700 cursor-pointer select-none hover:underline">計算過程（' + steps.length + ' 步）</summary>'
+      + '<summary class="text-sm font-semibold text-gray-600 cursor-pointer select-none hover:text-gray-900 hover:underline">計算過程（' + steps.length + ' 步）</summary>'
       + '<div class="steps mt-2 border border-gray-200 rounded-lg overflow-hidden">'
       + steps.map(function (st, i) {
           return '<div class="flex gap-3 px-3 py-2 text-sm ' + (i % 2 ? 'bg-white' : 'bg-gray-50') + (st.emphasis ? ' font-semibold' : '') + '">'
@@ -32,7 +32,7 @@
       .concat((a.cautions || []).map(function (x) { return { t: x, warn: true }; }));
     if (!items.length) return '';
     return '<details class="mt-3">'
-      + '<summary class="text-sm font-semibold text-cyan-700 cursor-pointer select-none hover:underline">給藥指引（' + items.length + ' 項）</summary>'
+      + '<summary class="text-sm font-semibold text-gray-600 cursor-pointer select-none hover:text-gray-900 hover:underline">給藥指引（' + items.length + ' 項）</summary>'
       + '<div class="mt-2 space-y-1">'
       + items.map(function (it) {
           return '<div class="text-sm rounded-lg px-3 py-2 border '
@@ -70,7 +70,7 @@
         + '">' + (v == null ? '—' : esc(v)) + '</td>';
     }).join('');
     return '<details class="mt-3">'
-      + '<summary class="text-sm font-semibold text-cyan-700 cursor-pointer select-none hover:underline">來源對照（本表該藥的 ' + bands.length + ' 格，已標出用了哪一格）</summary>'
+      + '<summary class="text-sm font-semibold text-gray-600 cursor-pointer select-none hover:text-gray-900 hover:underline">來源對照（本表該藥的 ' + bands.length + ' 格，已標出用了哪一格）</summary>'
       + '<div class="mt-2 overflow-x-auto">'
       + '<table class="w-full border-collapse text-sm"><thead><tr>' + head1 + '</tr><tr>' + head2 + '</tr></thead>'
       + '<tbody><tr>' + row + '</tr></tbody></table>'
@@ -159,7 +159,7 @@
 
     var n = Object.keys(active).length;
     return '<details class="mt-4"' + (openByDefault ? ' open' : '') + '>'
-      + '<summary class="text-sm font-semibold text-cyan-700 cursor-pointer select-none hover:underline">'
+      + '<summary class="text-sm font-semibold text-gray-600 cursor-pointer select-none hover:text-gray-900 hover:underline">'
       + '完整劑量表（' + data.drugs.length + ' 列'
       + (n ? '，已標出選用的 ' + n + ' 格' : '') + '）</summary>'
       + '<div class="mt-2 overflow-x-auto rounded-lg border border-gray-200">'

@@ -19,7 +19,7 @@ check('HTML 內沒有 inline script（介面邏輯一律外置）', inline.lengt
 
 // 逐支外部腳本實際 parse
 const srcs = opens.map(o => (o[0].match(/src="([^"]+)"/) || [])[1]).filter(Boolean).filter(s => !/^https?:/.test(s));
-check('外部腳本數 = 13', srcs.length === 13, `實際 ${srcs.length}: ${srcs.join(', ')}`);
+check('外部腳本數 = 14', srcs.length === 14, `實際 ${srcs.length}: ${srcs.join(', ')}`);
 for (const src of srcs) {
   let err = null;
   try { new Function(fs.readFileSync(new URL(src, root), 'utf8')); } catch (e) { err = e.message; }

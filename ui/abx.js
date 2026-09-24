@@ -111,36 +111,34 @@ document.addEventListener('DOMContentLoaded', function () {
         var warns = L.warnings(drug, pt.pmaWeeks || 0);
         if (res.ok && res.intervalNote) warns.unshift(res.intervalNote);
         L.boundaryNotes(ew.g, pt.ageDays).reverse().forEach(function (n) { warns.unshift(n); });
-        var warnHtml = warns.map(function (w) { return warnBox('amber', w); }).join('');
+        var warnHtml = warns.length ? '<div class="mt-2 space-y-1">' + warns.map(function (w) { return warnBox('amber', w); }).join('') + '</div>' : '';
 
         if (!res.ok) {
-          body = meta + warnBox('red', res.reason)
+          body = meta + warnHtml + warnBox('red', res.reason)
             + (res.freeText || res.raw ? '<div class="mt-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600">原文：' + esc(res.freeText || res.raw) + '</div>' : '')
             + R.stepsHtml(L.explain(drug, sel, res, ew, ew.g))
             + R.bandTableHtml(D.bands, drug.doses, sel.band, D.source)
-            + R.guideHtml(ADMIN[drug.name]) + warnHtml;
+            + R.guideHtml(ADMIN[drug.name]);
         } else {
           var pd = L.perDose(res, ew.g), dt = L.dailyTotal(res, ew.g);
-          var daily = dt ? '<div class="mt-1 text-sm text-cyan-700">' + (dt.averaged ? '平均每日' : '每日總量') + ' '
+          var daily = dt ? '<div class="mt-1 text-base text-cyan-700">' + (dt.averaged ? '平均每日' : '每日總量') + ' '
             + range(dt.min, dt.max) + ' ' + esc(res.unit) + '/day（' + range(dt.perKgMin, dt.perKgMax) + ' ' + esc(res.unit) + '/kg/day）</div>' : '';
-          body = meta
-            + '<div class="mt-3 flex flex-wrap gap-3">'
-            +   '<div class="min-w-[200px] flex-1 rounded-lg border border-gray-200 bg-gray-50 p-3">'
-            +     '<div class="text-sm font-bold text-gray-500">本表建議</div>'
-            +     '<div class="text-base text-gray-800">' + range(res.min, res.max) + ' ' + esc(res.unit) + '/kg/dose ' + esc(res.interval) + '</div>'
-            +     '<div class="mt-1 text-sm text-gray-400">原文：' + esc(res.raw) + '</div>'
-            +   '</div>'
-            +   '<div class="min-w-[200px] flex-1 rounded-lg border border-cyan-200 bg-cyan-50 p-3">'
-            +     '<div class="text-sm font-bold text-cyan-600">每劑</div>'
-            +     '<div class="text-xl font-bold leading-tight text-cyan-800">' + range(pd.min, pd.max) + ' ' + esc(res.unit) + ' ' + esc(res.interval) + '</div>'
-            +     daily
-            +   '</div>'
+          // 順序刻意如此：警示 → 答案 → 覆核 → 細節。
+          // 會改變劑量決策的警示必須排在數字前面，不能讓人看完數字就走。
+          body = meta + warnHtml
+            + '<div class="mt-3 rounded-xl border-2 border-cyan-300 bg-cyan-50 p-4">'
+            +   '<div class="text-sm font-bold uppercase tracking-wide text-cyan-600">每劑</div>'
+            +   '<div class="text-3xl font-bold leading-tight text-cyan-900">' + range(pd.min, pd.max) + ' ' + esc(res.unit)
+            +     ' <span class="text-2xl">' + esc(res.interval) + '</span></div>'
+            +   daily
             + '</div>'
+            + '<div class="mt-2 text-sm text-gray-500">本表建議 <b class="font-semibold text-gray-700">'
+            +   range(res.min, res.max) + ' ' + esc(res.unit) + '/kg/dose ' + esc(res.interval)
+            +   '</b>　原文「' + esc(res.raw) + '」</div>'
+            + reviewHtml(idx, res, pd)
             + R.stepsHtml(L.explain(drug, sel, res, ew, ew.g))
             + R.bandTableHtml(D.bands, drug.doses, sel.band, D.source)
-            + R.guideHtml(ADMIN[drug.name])
-            + reviewHtml(idx, res, pd)
-            + warnHtml;
+            + R.guideHtml(ADMIN[drug.name]);
         }
       }
     }
@@ -148,8 +146,8 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   function warnBox(tone, text) {
-    var cls = tone === 'red' ? 'bg-red-50 border-red-200 text-red-900' : 'bg-amber-50 border-amber-200 text-amber-900';
-    return '<div class="mt-2 rounded-lg border px-3 py-2 text-sm ' + cls + '">' + (tone === 'amber' ? '⚠ ' : '') + esc(text) + '</div>';
+    var cls = tone === 'red' ? 'bg-red-50 border-red-300 text-red-900' : 'bg-amber-50 border-amber-300 text-amber-900';
+    return '<div class="rounded-lg border px-3 py-2 text-sm font-medium ' + cls + '">' + (tone === 'amber' ? '⚠ ' : '') + esc(text) + '</div>';
   }
 
   // 覆核：每張卡各自比對

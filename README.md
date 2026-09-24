@@ -141,6 +141,21 @@ Relapse 列缺 Daily therapy 與 duration，因此只提供 Day 1。
 例如「體重距 2000 g 分界僅 50 g」、「體重正好在 2000 g 分界上：本表 2000 g 屬
 1200~2000 g 帶，非 >2000 g」。`<1200 g` 的日齡分界是第 28 天，其餘是第 7 天。
 
+## 版面原則
+
+卡片的排列順序是刻意的：**警示 → 答案 → 覆核 → 細節**。
+
+會改變劑量決策的警示（接近分界、血中濃度退場、PMA 註記）一律排在「每劑」數字**之前** ——
+趕時間的人看到數字就會走，警示放在底部等於沒有。此順序有測試釘住。
+
+覆核排在計算過程之前，因為「我要開 X，幫我檢查」比「解釋給我聽」更常用。
+
+顏色有分工：**cyan 只用於答案**（每劑）與導覽狀態（目前分頁）與標題，
+其餘一律中性灰，避免整頁同色而失去著力點。可展開區塊為灰色，不與答案搶。
+
+病人資料列填完可**收合成一行**（`1500 g・當下 1420 g・日齡 3 天・GA 30 週`），
+在窄螢幕上把版面讓給結果。
+
 ## 覆核設計
 
 這個工具的重點不是算出數字，是**讓醫師能驗算**。**四個分頁**的結果都附「計算過程」，
@@ -182,7 +197,8 @@ interval 超過 24 小時者（q36h／q48h）標示為「平均每日」而非�
 ```
 index.html          只有骨架與版面，不含程式邏輯
 lib/patient.js      共用病人資料與「用哪個體重」的規則
-ui/render.js        各分頁共用的呈現元件（計算過程、給藥指引）
+ui/render.js        各分頁共用的呈現元件（計算過程、指引、來源對照、範圍帶、完整表）
+ui/patient-bar.js   病人資料列的收合與摘要
 ui/                 各分頁的介面邏輯（drip / abx / misc / flu）
 data/abx-data.js    抗生素劑量查詢資料（程式產生，請勿手改）
 data/abx-admin.js   抗生素給藥指引（人工整理）
@@ -196,18 +212,19 @@ tests/              node 原生執行，無相依套件
 
 顯示的數值一律四捨五入至**小數第 2 位**（例：1.25 mL/kg × 1.5 kg = 1.875 → 顯示 1.88 mL）。
 
-測試（共 287 項）：
+測試（共 300 項）：
 
 ```bash
 node tests/abx.test.mjs       # 抗生素資料 + 選格 + 覆核 + 分界（60）
-node tests/abx-ui.test.mjs    # 抗生素分頁端到端＋計算過程＋多選＋來源對照＋完整表（56）
+node tests/abx-ui.test.mjs    # 抗生素分頁端到端＋多選＋來源對照＋完整表＋版面順序（59）
 node tests/misc.test.mjs      # 其他藥物資料 + 換算（30）
 node tests/misc-ui.test.mjs   # 其他藥物分頁端到端＋計算過程（24）
 node tests/flu.test.mjs       # Fluconazole 資料 + 換算 + 腎調整（48）
 node tests/flu-ui.test.mjs    # Fluconazole 分頁端到端＋計算過程（26）
 node tests/patient.test.mjs   # 病人資料與體重規則（15）
+node tests/patient-bar.test.mjs # 病人資料列收合與摘要（9）
 node tests/wiring.test.mjs    # DOM 接線靜態檢查（8）
-node tests/html-scripts.test.mjs # 腳本外置與可解析性（20）
+node tests/html-scripts.test.mjs # 腳本外置與可解析性（21）
 ```
 
 ## 部署

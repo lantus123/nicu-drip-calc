@@ -50,10 +50,16 @@
     </header>
 
     <!-- 分頁列 -->
-    <!-- 病人資料：四個分頁共用，填一次到處通用 -->
-    <section class="mb-4 rounded-xl border border-cyan-200 bg-cyan-50 p-4">
-      <h2 class="mb-3 text-sm font-bold text-cyan-800">病人資料<span class="ml-2 font-normal text-cyan-700">（四個分頁共用）</span></h2>
-      <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+    <!-- 病人資料：四個分頁共用，填一次到處通用；可收合成一行 -->
+    <section class="mb-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+      <div class="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 class="text-sm font-bold text-slate-700">病人資料<span class="ml-2 font-normal text-slate-500">（四個分頁共用）</span></h2>
+        <div class="flex items-baseline gap-3">
+          <span id="pSummary" class="text-sm text-slate-600"></span>
+          <button id="pToggle" class="btn rounded px-2 py-1 text-sm font-medium text-slate-600 hover:bg-slate-200">收合</button>
+        </div>
+      </div>
+      <div id="pFields" class="mt-3 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <div>
           <label for="pBirthWeight" class="compact-label">出生體重 (g)</label>
           <input type="number" id="pBirthWeight" step="1" placeholder="1500" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">
@@ -247,6 +253,7 @@
 
   <script src="lib/patient.js"></script>
   <script src="ui/render.js"></script>
+  <script src="ui/patient-bar.js"></script>
   <script src="ui/drip.js"></script>
 
   <script src="ui/abx.js"></script>
