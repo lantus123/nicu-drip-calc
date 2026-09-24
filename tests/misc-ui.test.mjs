@@ -106,5 +106,12 @@ has('沒填體重時不顯示空的計算過程',
 run('caffeine_citrate', 1200);
 has('覆核附上劑量範圍帶', review('Maintenance', 24), '建議 6~12 mg');
 
+// ── 開立單位顯示（2026-09-24）──────────────────────────
+has('Propacetamol 顯示以 v 開立的數字',
+  run('propacetamol_iv', 3000), '90 mg', '以 v 開立：0.09 v', '1 v = 1 g');
+has('計算過程列出換算那一步', text('miscResult'), '開立單位', '90 mg ÷ 1000 mg/v', '0.09 v');
+has('Paracetamol（口服）不顯示開立單位',
+  run('paracetamol_po', 3000).includes('以 v 開立') ? 'HAS' : 'NONE', 'NONE');
+
 console.log(`\n通過 ${pass} ／ 失敗 ${fail}`);
 process.exit(fail ? 1 : 0);

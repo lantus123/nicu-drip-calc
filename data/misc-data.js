@@ -74,6 +74,8 @@
       {
         id: "propacetamol_iv", name: "Propacetamol", category: "PDA",
         route: "IV",
+        // 只能以 vial 為單位開立，因此算完 mg 還要換算成 v
+        supply: { label: "v", perUnitMg: 1000, note: "1 v = 1 g", orderInUnit: true },
         regimens: [
           { label: "劑量", min: 30, max: 30, unit: "mg", perKg: true, interval: "q6h", note: "3-7 days" }
         ]

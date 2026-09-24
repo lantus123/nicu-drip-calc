@@ -58,5 +58,19 @@ eq('覆核 4 → 偏低', L.reviewOrder(caf, 4).verdict, 'low');
 eq('覆核 24 → 偏高 +100%', [L.reviewOrder(caf, 24).verdict, Math.round(L.reviewOrder(caf, 24).deviation)], ['high', 100]);
 eq('覆核未輸入 → n/a', L.reviewOrder(caf, NaN).verdict, 'n/a');
 
+// ── 開立單位換算（2026-09-24）──────────────────────────
+const prop = drug('propacetamol_iv');
+eq('Propacetamol 標為只能以 v 開立', prop.supply.orderInUnit, true);
+eq('1 v = 1000 mg', prop.supply.perUnitMg, 1000);
+const pr = rows('propacetamol_iv', 3000)[0];
+eq('3kg 每劑 90 mg', pr.min, 90);
+eq('換算 0.09 v', Math.round(pr.orderUnit.min * 1000) / 1000, 0.09);
+eq('標記為必須以該單位開立', pr.orderUnit.required, true);
+eq('1.2kg → 0.036 v', Math.round(rows('propacetamol_iv', 1200)[0].orderUnit.min * 1000) / 1000, 0.036);
+eq('計算過程含開立單位一步',
+  L.explain(prop, 3000).some(s => s.label === '開立單位' && s.value === '0.09 v'), true);
+eq('沒有 supply 的藥不產生換算', rows('paracetamol_po', 3000)[0].orderUnit, null);
+eq('非 mg 單位不換算（Curosurf 以 mL 計）', rows('curosurf', 1500)[0].orderUnit, null);
+
 console.log(`\n通過 ${pass} ／ 失敗 ${fail}`);
 process.exit(fail ? 1 : 0);
