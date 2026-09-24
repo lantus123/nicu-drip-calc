@@ -11,7 +11,7 @@
     if (!steps || !steps.length) return '';
     return '<details open class="mt-0">'
       + '<summary class="text-sm font-semibold text-gray-600 cursor-pointer select-none hover:text-gray-900 hover:underline">計算過程（' + steps.length + ' 步）</summary>'
-      + '<div class="steps mt-2 border border-gray-200 rounded-lg overflow-hidden">'
+      + '<div class="steps mt-2 overflow-hidden rounded">'
       + steps.map(function (st, i) {
           return '<div class="flex gap-3 px-3 py-2 text-sm ' + (i % 2 ? 'bg-white' : 'bg-gray-50') + (st.emphasis ? ' font-semibold' : '') + '">'
             + '<div class="w-24 shrink-0 font-medium text-gray-500">' + esc(st.label) + '</div>'
@@ -35,8 +35,8 @@
       + '<summary class="text-sm font-semibold text-gray-600 cursor-pointer select-none hover:text-gray-900 hover:underline">給藥指引（' + items.length + ' 項）</summary>'
       + '<div class="mt-2 space-y-1">'
       + items.map(function (it) {
-          return '<div class="text-sm rounded-lg px-3 py-2 border '
-            + (it.warn ? 'bg-red-50 border-red-200 text-red-900' : 'bg-slate-50 border-slate-200 text-slate-700')
+          return '<div class="border-l-2 py-1 pl-3 text-sm '
+            + (it.warn ? 'border-red-400 text-red-800' : 'border-gray-200 text-gray-600')
             + '">' + (it.warn ? '⚠ ' : '') + esc(it.t) + '</div>';
         }).join('')
       + '</div></details>';
@@ -163,7 +163,7 @@
       + '<summary class="text-sm font-semibold text-gray-600 cursor-pointer select-none hover:text-gray-900 hover:underline">'
       + '完整劑量表（' + data.drugs.length + ' 列'
       + (n ? '，已標出選用的 ' + n + ' 格' : '') + '）</summary>'
-      + '<div class="mt-2 overflow-x-auto rounded-lg border border-gray-200">'
+      + '<div class="mt-2 overflow-x-auto">'
       + '<table class="w-full border-collapse">' + head + '<tbody>' + body + '</tbody></table></div>'
       + '<div class="mt-1 text-xs text-gray-400">' + esc(data.source) + '</div>'
       + '</details>';
@@ -212,7 +212,7 @@
   function detailsGroupHtml(parts) {
     var body = parts.filter(Boolean).join('');
     if (!body) return '';
-    return '<div class="mt-4 divide-y divide-gray-200 rounded-lg border border-gray-200 [&>details]:px-3 [&>details]:py-2">' + body + '</div>';
+    return '<div class="mt-4 divide-y divide-gray-200 border-t border-gray-200 [&>details]:py-2.5">' + body + '</div>';
   }
 
   root.UiRender = { esc: esc, stepsHtml: stepsHtml, guideHtml: guideHtml,

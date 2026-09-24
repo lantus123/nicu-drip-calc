@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!res.ok) {
           body = meta + warnHtml + warnBox('red', res.reason)
-            + (res.freeText || res.raw ? '<div class="mt-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600">原文：' + esc(res.freeText || res.raw) + '</div>' : '')
+            + (res.freeText || res.raw ? '<div class="mt-2 border-l-2 border-gray-200 py-1 pl-3 text-sm text-gray-600">原文：' + esc(res.freeText || res.raw) + '</div>' : '')
             + R.detailsGroupHtml([
                 R.stepsHtml(L.explain(drug, sel, res, ew, ew.g)),
                 R.bandTableHtml(D.bands, drug.doses, sel.band, D.source),
@@ -161,7 +161,7 @@ document.addEventListener('DOMContentLoaded', function () {
           // 順序刻意如此：警示 → 答案 → 覆核 → 細節。
           // 會改變劑量決策的警示必須排在數字前面，不能讓人看完數字就走。
           body = meta + warnHtml
-            + '<div class="mt-3 rounded-xl border-2 border-cyan-300 bg-cyan-50 p-4">'
+            + '<div class="mt-3 rounded-lg bg-cyan-50 px-4 py-3">'
             +   '<div class="text-sm font-bold uppercase tracking-wide text-cyan-600">每劑</div>'
             +   '<div class="text-3xl font-bold leading-tight text-cyan-900">' + range(pd.min, pd.max) + ' ' + esc(res.unit)
             +     ' <span class="text-2xl">' + esc(res.interval) + '</span></div>'
@@ -207,7 +207,7 @@ document.addEventListener('DOMContentLoaded', function () {
       + range(out.perDay.min, out.perDay.max) + ' ' + esc(pdose.unit) + '/day（'
       + range(out.perKgPerDay.min, out.perKgPerDay.max) + ' ' + esc(pdose.unit) + '/kg/day）</div>';
     return meta + warnHtml
-      + '<div class="mt-3 rounded-xl border-2 border-cyan-300 bg-cyan-50 p-4">'
+      + '<div class="mt-3 rounded-lg bg-cyan-50 px-4 py-3">'
       +   '<div class="text-sm font-bold uppercase tracking-wide text-cyan-600">每劑</div>'
       +   '<div class="text-3xl font-bold leading-tight text-cyan-900">' + range(pdose.min, pdose.max) + ' ' + esc(pdose.unit)
       +     ' <span class="text-2xl">' + (out.single ? '單次' : esc(out.interval)) + '</span></div>'
@@ -241,7 +241,7 @@ document.addEventListener('DOMContentLoaded', function () {
       return '<option value="' + v + '"' + (chosen ? ' selected' : '') + '>' + (v || '—') + '</option>';
     }).join('');
     var res = saved.verdict ? verdictHtml(saved.verdict) : '';
-    return '<div class="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3">'
+    return '<div class="mt-4 border-t border-gray-200 pt-3">'
       + '<div class="flex flex-wrap items-end gap-3">'
       +   '<div class="min-w-[140px] flex-1"><label class="compact-label">覆核：我打算開每劑</label>'
       +     '<input type="number" step="0.1" data-dose="' + idx + '" value="' + (saved.dose === undefined ? '' : saved.dose) + '" placeholder="' + esc(out.perDose.unit) + '" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input"></div>'
@@ -271,7 +271,7 @@ document.addEventListener('DOMContentLoaded', function () {
       return '<option value="' + v + '"' + (chosen ? ' selected' : '') + '>' + label + '</option>';
     }).join('');
     var out = saved.verdict ? verdictHtml(saved.verdict) : '';
-    return '<div class="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3">'
+    return '<div class="mt-4 border-t border-gray-200 pt-3">'
       + '<div class="flex flex-wrap items-end gap-3">'
       +   '<div class="min-w-[140px] flex-1"><label class="compact-label">覆核：我打算開每劑</label>'
       +     '<input type="number" step="0.1" data-dose="' + idx + '" value="' + (saved.dose === undefined ? '' : saved.dose) + '" placeholder="' + esc(res.unit) + '" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input"></div>'
@@ -288,11 +288,11 @@ document.addEventListener('DOMContentLoaded', function () {
       low: ['bg-red-100 border-red-300 text-red-900', '❌', '低於本表下限'],
       na: ['bg-gray-100 border-gray-300 text-gray-700', '', ''],
     }[v.verdict] || ['bg-gray-100 border-gray-300 text-gray-700', '', ''];
-    if (v.verdict === 'na') return '<div class="mt-2 rounded-lg border px-3 py-2 text-sm ' + map[0] + '">' + esc(v.text) + '</div>';
+    if (v.verdict === 'na') return '<div class="mt-3 rounded-lg px-3 py-2 text-sm ' + map[0] + '">' + esc(v.text) + '</div>';
     var dev = v.deviation ? '（' + (v.deviation > 0 ? '+' : '') + Math.round(v.deviation) + '%）' : '';
     var iv = v.intervalMatch === false
       ? '<div class="mt-1 text-sm">⚠ Interval 不符：本表為 <b>' + esc(v.expectedInterval) + '</b></div>' : '';
-    return '<div class="mt-2 rounded-lg border px-3 py-2 ' + map[0] + '">'
+    return '<div class="mt-3 rounded-lg px-3 py-2 ' + map[0] + '">'
       + '<div class="text-center text-base font-bold">' + map[1] + ' ' + map[2] + ' ' + dev + '</div>'
       + R.rangeBarHtml(v.perDose.min, v.perDose.max, v.ordered, v.perDose.unit)
       + '<div class="text-center text-sm opacity-80">本表每劑 ' + range(v.perDose.min, v.perDose.max) + ' ' + esc(v.perDose.unit)

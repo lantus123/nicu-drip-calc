@@ -58,13 +58,13 @@
           ? '<div class="text-sm text-gray-500 mt-1">以 ' + D.administration.maxConcentration + ' mg/mL 稀釋約 <b>'
             + fmt(r.infusion.volumeMl) + ' mL</b>，至少輸注 <b>' + fmt(r.infusion.minHours) + ' 小時</b>（' + esc(r.infusion.limitedBy) + '）</div>' : '';
         return '<div class="flex gap-2 items-stretch">'
-          + '<div class="flex-1 bg-gray-50 border border-gray-200 rounded-lg p-3">'
+          + '<div class="flex-1 rounded-lg bg-gray-50 px-3 py-2.5">'
           +   '<div class="text-sm text-gray-500 font-bold mb-1">' + esc(r.label)
           +     (r.note ? ' <span class="font-normal text-gray-400">' + esc(r.note) + '</span>' : '') + '</div>'
           +   '<div class="text-base text-gray-800">' + perKg + (r.interval ? ' ' + esc(r.interval) : '') + '</div>'
           +   rounded + inf
           + '</div>'
-          + '<div class="flex-1 bg-cyan-50 border border-cyan-200 rounded-lg p-3 flex flex-col justify-center">'
+          + '<div class="flex-1 rounded-lg bg-cyan-50 px-3 py-2.5 flex flex-col justify-center">'
           +   '<div class="text-sm text-cyan-600 font-bold mb-1">每劑</div>'
           +   '<div class="text-xl font-bold text-cyan-800 leading-tight">' + range(r.amount.min, r.amount.max) + ' mg'
           +     (r.interval ? ' ' + esc(r.interval) : '') + '</div>'
@@ -117,7 +117,7 @@
       var r = L.reviewOrder(row, parseFloat($('fluOrderedDose').value));
       var box = $('fluReviewResult'); box.classList.remove('hidden');
       if (r.verdict === 'n/a') {
-        box.innerHTML = '<div class="text-sm rounded border px-3 py-2 bg-gray-50 border-gray-200 text-gray-700">' + esc(r.text) + '</div>';
+        box.innerHTML = '<div class="text-sm rounded px-3 py-2 bg-gray-50 text-gray-700">' + esc(r.text) + '</div>';
         return;
       }
       var map = {
@@ -126,7 +126,7 @@
         low:   ['bg-red-100 border-red-300 text-red-900', '❌', '低於本表下限'],
       }[r.verdict];
       var dev = r.deviation ? '（' + (r.deviation > 0 ? '+' : '') + Math.round(r.deviation) + '%）' : '';
-      box.innerHTML = '<div class="rounded-lg border px-3 py-2.5 ' + map[0] + '">'
+      box.innerHTML = '<div class="rounded-lg px-3 py-2.5 ' + map[0] + '">'
         + '<div class="text-center text-base font-bold">' + map[1] + ' ' + map[2] + ' ' + dev + '</div>'
         + R.rangeBarHtml(r.row.amount.min, r.row.amount.max, r.ordered, 'mg')
         + '<div class="text-center text-sm opacity-80 mt-1">' + esc(r.row.label) + ' 本表每劑 ' + range(r.row.amount.min, r.row.amount.max)

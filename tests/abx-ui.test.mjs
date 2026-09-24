@@ -345,8 +345,12 @@ is('用法是按鈕不是下拉（覆核的 interval 仍為下拉，不在此列
   ampHtml.includes('data-choice="0"') && !/<select[^>]*data-variant/.test(ampHtml), true);
 is('PMA 判讀為灰色註記，不混進琥珀警示',
   ampHtml.includes('判讀：') && !/bg-amber-50[^>]*>[^<]*⚠[^<]*完成週數/.test(ampHtml), true);
-is('細節收成一組（單一外框內含多個 details）',
-  (ampHtml.match(/divide-y divide-gray-200 rounded-lg border/g) || []).length, 1);
+is('細節收成一組（以細線分隔，非外框）',
+  (ampHtml.match(/divide-y divide-gray-200 border-t/g) || []).length, 1);
+// 巢狀邊框深度：只允許 article 自己那一層，內部不得再有有框的容器
+// （警示框與表單控制項不套用 rounded-lg/xl + border 這組樣式）
+const boxCount = (ampHtml.match(/\brounded-(lg|xl)\b[^"]*\bborder\b/g) || []).length;
+is('卡片內不再有框中框（只剩卡片自己那一層）', boxCount, 1);
 
 clearAll(); clickChip('Cefotaxime (Claforan)');
 has('多用法時按鈕全部可見', text('abxResult'), '用法', 'sepsis', 'meningitis');
