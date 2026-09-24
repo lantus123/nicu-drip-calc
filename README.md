@@ -245,18 +245,27 @@ PMA 帶的寫法為「≤29／30-36／37-44／≥45 週」，字面上 29~30、3
 病人資料列填完可**收合成一行**（`1500 g・當下 1420 g・日齡 3 天・GA 30 週`），
 在窄螢幕上把版面讓給結果。
 
-## 開立單位
+## 劑型換算
 
-有些藥只能以 vial／amp 為單位開醫囑 —— 算出 mg 之後還要再換算一次，那才是 HIS 上
-真正要打的數字。資料裡以 `supply` 標明：
+有些藥是 vial／amp 包裝，知道等於幾 v 有助於備藥與核對。**mg 仍是主要答案** ——
+劑型換算放在答案色塊**外面**，以中性註記呈現，不與劑量數字搶：
+
+```
+每劑
+90 mg q6h
+每日總量 360 mg/day（120 mg/kg/day）
+
+│ 劑型：1 v = 1 g，此劑量約 0.09 v
+```
+
+資料裡以 `supply` 標明：
 
 ```js
 supply: { label: "v", perUnitMg: 1000, note: "1 v = 1 g", orderInUnit: true }
 ```
 
-`orderInUnit: true` 者，答案區會**加粗顯示**「以 v 開立：0.09 v（1 v = 1 g）」，
-計算過程也會列出換算那一步。目前只有 Propacetamol 標記，其餘藥品需要逐一確認
-HIS 的開立單位後再加。
+計算過程亦列出「劑型換算」一步，但**不加粗**（加粗留給「每劑」）。目前只有
+Propacetamol 標記，其餘藥品需逐一確認包裝規格後再加。
 
 ## 覆核設計
 
@@ -317,14 +326,14 @@ tests/              node 原生執行，無相依套件
 
 顯示的數值一律四捨五入至**小數第 2 位**（例：1.25 mL/kg × 1.5 kg = 1.875 → 顯示 1.88 mL）。
 
-測試（共 445 項）：
+測試（共 449 項）：
 
 ```bash
 node tests/abx.test.mjs       # 抗生素資料 + 選格 + 覆核 + 分界（60）
 node tests/abx-pma.test.mjs   # PMA × 日齡型抗生素（50）
 node tests/abx-ui.test.mjs    # 抗生素分頁端到端＋多選＋完整表＋PMA＋chip＋途徑＋版面（107）
-node tests/misc.test.mjs      # 其他藥物資料 + 換算 + 開立單位（39）
-node tests/misc-ui.test.mjs   # 其他藥物分頁端到端＋計算過程＋開立單位（27）
+node tests/misc.test.mjs      # 其他藥物資料 + 換算 + 劑型換算（41）
+node tests/misc-ui.test.mjs   # 其他藥物分頁端到端＋計算過程＋劑型換算（29）
 node tests/flu.test.mjs       # Fluconazole 資料 + 換算 + 腎調整（48）
 node tests/flu-ui.test.mjs    # Fluconazole 分頁端到端＋計算過程（26）
 node tests/route.test.mjs     # 給藥途徑解析、sameAs 繼承、窮舉覆蓋（29）

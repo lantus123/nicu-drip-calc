@@ -67,8 +67,12 @@ eq('3kg 每劑 90 mg', pr.min, 90);
 eq('換算 0.09 v', Math.round(pr.orderUnit.min * 1000) / 1000, 0.09);
 eq('標記為必須以該單位開立', pr.orderUnit.required, true);
 eq('1.2kg → 0.036 v', Math.round(rows('propacetamol_iv', 1200)[0].orderUnit.min * 1000) / 1000, 0.036);
-eq('計算過程含開立單位一步',
-  L.explain(prop, 3000).some(s => s.label === '開立單位' && s.value === '0.09 v'), true);
+eq('計算過程含劑型換算一步',
+  L.explain(prop, 3000).some(s => s.label === '劑型換算' && s.value === '0.09 v'), true);
+eq('劑型換算不強調（mg 才是主要答案）',
+  L.explain(prop, 3000).find(s => s.label === '劑型換算').emphasis, false);
+eq('每劑那一步才是強調的',
+  L.explain(prop, 3000).find(s => s.label === '劑量').emphasis, true);
 eq('沒有 supply 的藥不產生換算', rows('paracetamol_po', 3000)[0].orderUnit, null);
 eq('非 mg 單位不換算（Curosurf 以 mL 計）', rows('curosurf', 1500)[0].orderUnit, null);
 

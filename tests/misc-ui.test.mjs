@@ -107,11 +107,14 @@ run('caffeine_citrate', 1200);
 has('覆核附上劑量範圍帶', review('Maintenance', 24), '建議 6~12 mg');
 
 // ── 開立單位顯示（2026-09-24）──────────────────────────
-has('Propacetamol 顯示以 v 開立的數字',
-  run('propacetamol_iv', 3000), '90 mg', '以 v 開立：0.09 v', '1 v = 1 g');
-has('計算過程列出換算那一步', text('miscResult'), '開立單位', '90 mg ÷ 1000 mg/v', '0.09 v');
-has('Paracetamol（口服）不顯示開立單位',
-  run('paracetamol_po', 3000).includes('以 v 開立') ? 'HAS' : 'NONE', 'NONE');
+const propHtml = run('propacetamol_iv', 3000);
+has('mg 仍是主要答案', propHtml, '90 mg', 'q6h');
+has('vial 以中性註記呈現', propHtml, '劑型：1 v = 1 g，此劑量約 0.09 v');
+has('vial 註記採中性樣式，不在答案色塊內',
+  $('miscResult').innerHTML, 'border-l-2 border-gray-300 py-1 pl-3 text-sm text-gray-600">劑型：');
+has('計算過程列出劑型換算', text('miscResult'), '劑型換算', '90 mg ÷ 1000 mg/v', '0.09 v');
+has('Paracetamol（口服）不顯示劑型換算',
+  run('paracetamol_po', 3000).includes('劑型：') ? 'HAS' : 'NONE', 'NONE');
 
 console.log(`\n通過 ${pass} ／ 失敗 ${fail}`);
 process.exit(fail ? 1 : 0);

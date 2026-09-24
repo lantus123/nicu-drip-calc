@@ -61,19 +61,19 @@
           +   '<div class="text-sm text-cyan-600 font-bold mb-1">每劑</div>'
           +   '<div class="text-xl font-bold text-cyan-800 leading-tight">' + range(r.min, r.max) + ' ' + esc(r.unit)
           +     (r.interval ? ' ' + esc(r.interval) : '') + '</div>'
-          +   orderUnitHtml(r)
-          + '</div></div>';
+          + '</div></div>'
+          + orderUnitHtml(r);
       }).join('<div class="h-1"></div>');
 
       // 給藥指引與其他分頁統一收在可展開區塊；toxic level 屬警告性質
-      // 只能以 vial 為單位開立者，把該單位一併標出——那才是醫囑上要打的數字
+      // 劑型換算：mg 才是主要答案，vial 只是包裝上的提醒，
+      // 因此放在答案框外、以中性樣式呈現，不與劑量數字搶。
       function orderUnitHtml(r) {
         var u = r.orderUnit;
         if (!u) return '';
-        return '<div class="mt-1.5 ' + (u.required ? 'text-base font-bold text-cyan-900' : 'text-sm text-cyan-700') + '">'
-          + (u.required ? '以 ' + esc(u.label) + ' 開立：' : '換算 ')
-          + range(u.min, u.max) + ' ' + esc(u.label)
-          + (u.note ? ' <span class="text-sm font-normal text-cyan-700">（' + esc(u.note) + '）</span>' : '')
+        return '<div class="mt-2 border-l-2 border-gray-300 py-1 pl-3 text-sm text-gray-600">'
+          + '劑型：' + (u.note ? esc(u.note) + '，' : '')
+          + '此劑量約 <b class="font-semibold text-gray-800">' + range(u.min, u.max) + ' ' + esc(u.label) + '</b>'
           + '</div>';
       }
 
