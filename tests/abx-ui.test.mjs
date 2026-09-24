@@ -233,7 +233,7 @@ has('依 PMA 帶判定並顯示依據', text('abxResult'), 'PMA <30 週，日齡
 has('PMA 判讀說明以警示呈現', text('abxResult'), '完成週數');
 has('計算過程含 PMA 一行', text('abxResult'), '計算過程', 'PMA', '出生 GA ＋ 日齡 ÷ 7');
 has('給藥指引含每日上限', text('abxResult'), '每日上限 400 mg/kg/day');
-has('出處未確認會顯示在畫面上', text('abxResult'), '出處待確認');
+has('出處顯示在畫面上', text('abxResult'), '資料出處：院內新生兒工作手冊');
 
 clearAll(); setPatient({ bw: 1000, days: 20, ga: 26 });
 addDrug('Vancomycin', 'Bacteremia');
@@ -243,6 +243,10 @@ has('Vancomycin 顯示 MIC 警告', text('abxResult'), 'resistance');
 clearAll(); setPatient({ bw: 3000, days: 20, ga: 38 });
 addDrug('Ampicillin/sulbactam (Unasyn)', '標準');
 has('Unasyn 來源未涵蓋的組合會拒答', text('abxResult'), '來源未涵蓋', '無建議 interval');
+clearAll(); setPatient({ bw: 2000, days: 3, ga: 34 });
+addDrug('Ampicillin/sulbactam (Unasyn)', '標準');
+has('Unasyn 濃度單位的判讀顯示於畫面',
+  text('abxResult'), '最高濃度 45 mg/mL', '原文寫 g，本工具判讀為 mg');
 
 // band 型與 pma 型可同時選入
 clearAll(); setPatient({ bw: 1200, days: 3, ga: 28 });

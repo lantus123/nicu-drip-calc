@@ -18,7 +18,11 @@ const r2 = n => Math.round(n * 100) / 100;
 // ── 資料 ────────────────────────────────────────────────
 eq('三種藥', D.drugs.length, 3);
 eq('全部標為 pma 型', D.drugs.every(d => d.kind === 'pma'), true);
-eq('出處尚未確認（不可默默上線）', D.source, '（出處待確認）');
+eq('已標註出處', D.source.includes('院內新生兒工作手冊'), true);
+// 濃度單位的判讀必須留在資料裡並顯示出來，不可默默正規化
+const unasyn = D.drugs.find(d => d.id === 'unasyn');
+eq('Unasyn 最高濃度 45 mg/mL', [unasyn.maxConcentration.value, unasyn.maxConcentration.unit], [45, 'mg/mL']);
+eq('保留 g→mg 的判讀說明', unasyn.maxConcentration.note.includes('原文寫 g'), true);
 eq('有 PMA 判讀說明', D.pmaWordingNote.includes('完成週數'), true);
 eq('不含手寫註記 Augmentin', JSON.stringify(D).includes('Augmentin'), false);
 eq('不含院內修訂標記', /\(20\d\d增\)/.test(JSON.stringify(D)), false);

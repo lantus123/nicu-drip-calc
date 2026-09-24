@@ -11,7 +11,7 @@
 
   return {
     dataVersion: "2026-09-24",
-    source: "（出處待確認）",
+    source: "院內新生兒工作手冊（劑量與 interval 對照）",
     pmaWordingNote: PMA_WORDING,
     drugs: [
       {
@@ -42,7 +42,9 @@
       {
         id: "unasyn", name: "Ampicillin/sulbactam (Unasyn)", route: "IVD 10-15 分鐘", kind: "pma",
         vial: "1.5 g/vial（ampicillin 1 g + sulbactam 0.5 g）",
-        maxConcentration: { value: 45, unit: "mg/mL", note: "以 Unasyn 總量計" },
+        // 原文寫「45mg Unasyn (30g Am+15g sulbactam)/ml」，其中 g 判讀為 mg 之筆誤
+        // （45 mg/mL 為 ampicillin/sulbactam 標準最高輸注濃度）。判讀一併顯示於畫面。
+        maxConcentration: { value: 45, unit: "mg/mL", note: "以 Unasyn 總量計；原文寫 g，本工具判讀為 mg" },
         intervalTable: [
           { pmaMax: 37, pnaMax: Infinity, hours: 12, label: "PMA <37 週" },
           { pmaMax: Infinity, pnaMax: 8, hours: 8, label: "PMA ≥37 週，日齡 ≤8 天" }
