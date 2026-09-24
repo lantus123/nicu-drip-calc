@@ -1,4 +1,8 @@
-// 由 tools/ 產生，請勿手改；資料來源見 source 欄位。
+// 抗生素劑量查詢資料。
+// 初版由程式自來源文件產生並逐格比對驗證（130/130），產生器已完成階段性任務、
+// 且需讀取不納入版控的來源文件，因此不隨附。此後本檔即為真相來源，
+// 由 tests/abx.test.mjs 與 tests/route.test.mjs 把關，可直接維護。
+// 資料來源見 source 欄位。
 (function (root, factory) {
   if (typeof module === "object" && module.exports) module.exports = factory();
   else root.ABX_DATA = factory();
@@ -408,9 +412,7 @@
         "gt2000_le7d": null,
         "gt2000_gt7d": null
       },
-      "flags": [
-        "sameAsPiperacillin"
-      ],
+      "sameAs": "Piperacillin",
       "freeText": "same as for piperacillin"
     },
     {

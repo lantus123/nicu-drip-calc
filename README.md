@@ -118,6 +118,13 @@ Relapse 列缺 Daily therapy 與 duration，因此只提供 Day 1。
 
 重複選入同一藥不會產生第二張卡；每張卡可單獨移除，或按「清空」全部清掉。
 
+## 資料維護
+
+`data/abx-data.js` 初版由程式自來源文件產生並逐格比對驗證（130/130）。產生器需讀取
+不納入版控的來源文件，已完成階段性任務，因此不隨附 —— **此後該檔即為真相來源，
+可直接維護**，由測試把關。README 與檔頭不再宣稱「請勿手改」，因為那會留下一個
+沒有合法修改途徑的檔案。
+
 ## 給藥途徑
 
 口服與針劑以**標記**呈現，不是小灰字 —— 途徑弄錯是實際的用藥錯誤，值得佔視覺預算：
@@ -130,8 +137,13 @@ Relapse 列缺 Daily therapy 與 duration，因此只提供 Day 1。
 
 **合併儲存格的繼承**：原表 Route 欄多處為合併儲存格，Cefotaxime／Meropenem／Oxacillin
 的 meningitis 變體與 Penicillin G 的 GBS 列原本**畫面上完全沒有途徑資訊**。
-現在會沿用同藥其他列的途徑並標示「原表此列 Route 為合併儲存格，沿用同藥」；
-Piperacillin/tazobactam 則由介面層沿用 Piperacillin。
+現在會沿用並標示「原表此列 Route 為合併儲存格，沿用同藥」。繼承來源**寫在資料裡**，
+不靠程式比對藥名：同藥名自動沿用，跨藥名則以 `sameAs` 欄位明寫
+（Piperacillin/tazobactam → Piperacillin）。
+
+**安全網**：`tests/route.test.mjs` 與 `tests/abx-ui.test.mjs` 各有一條**窮舉測試**，
+掃過全部 27 種藥，斷言每一種都解析得出途徑、且卡片上都渲染出標記。
+前者擋資料缺漏，後者擋接線問題 —— 未來新增的藥忘了填途徑，兩邊都會紅。
 
 ## 選藥方式
 
@@ -255,7 +267,7 @@ lib/route.js        給藥途徑解析與合併儲存格繼承
 ui/render.js        各分頁共用的呈現元件（計算過程、指引、來源對照、範圍帶、完整表）
 ui/patient-bar.js   病人資料列的收合與摘要
 ui/                 各分頁的介面邏輯（drip / abx / misc / flu）
-data/abx-data.js    抗生素劑量查詢資料（體重帶 × 日齡；程式產生，請勿手改）
+data/abx-data.js    抗生素劑量查詢資料（體重帶 × 日齡）
 data/abx-pma-data.js  PMA × 日齡型抗生素（Ampicillin／Unasyn／Vancomycin）
 data/abx-admin.js   抗生素給藥指引（人工整理）
 data/misc-data.js   Surfactant／AOP／PDA 資料
@@ -269,17 +281,17 @@ tests/              node 原生執行，無相依套件
 
 顯示的數值一律四捨五入至**小數第 2 位**（例：1.25 mL/kg × 1.5 kg = 1.875 → 顯示 1.88 mL）。
 
-測試（共 418 項）：
+測試（共 424 項）：
 
 ```bash
 node tests/abx.test.mjs       # 抗生素資料 + 選格 + 覆核 + 分界（60）
 node tests/abx-pma.test.mjs   # PMA × 日齡型抗生素（50）
-node tests/abx-ui.test.mjs    # 抗生素分頁端到端＋多選＋完整表＋PMA 型＋chip＋途徑（97）
+node tests/abx-ui.test.mjs    # 抗生素分頁端到端＋多選＋完整表＋PMA＋chip＋途徑窮舉（99）
 node tests/misc.test.mjs      # 其他藥物資料 + 換算（30）
 node tests/misc-ui.test.mjs   # 其他藥物分頁端到端＋計算過程（24）
 node tests/flu.test.mjs       # Fluconazole 資料 + 換算 + 腎調整（48）
 node tests/flu-ui.test.mjs    # Fluconazole 分頁端到端＋計算過程（26）
-node tests/route.test.mjs     # 給藥途徑解析與合併儲存格繼承（25）
+node tests/route.test.mjs     # 給藥途徑解析、sameAs 繼承、窮舉覆蓋（29）
 node tests/patient.test.mjs   # 病人資料與體重規則（15）
 node tests/patient-bar.test.mjs # 病人資料列收合與摘要（9）
 node tests/wiring.test.mjs    # DOM 接線靜態檢查（8）

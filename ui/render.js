@@ -135,7 +135,7 @@
     var body = data.drugs.map(function (d) {
       var activeBand = active[d.id];
       var on = activeBand !== undefined;
-      var rinfo = root.RouteInfo ? root.RouteInfo.resolve(d, data.drugs.filter(function (x) { return x.name === d.name; })) : null;
+      var rinfo = root.RouteInfo ? root.RouteInfo.resolve(d, data.drugs) : null;
       var label = esc(d.name)
         + (d.indication || d.regimen ? ' <span class="text-gray-400">(' + esc(d.indication || d.regimen) + ')</span>' : '')
         + (rinfo && rinfo.routes.length ? '<div class="mt-1">' + routeBadgesHtml(rinfo, { hideNote: true }) + '</div>' : '');

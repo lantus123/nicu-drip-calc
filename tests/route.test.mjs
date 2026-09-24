@@ -14,9 +14,8 @@ const keys = s => R.parse(s).routes.map(r => r.key);
 const byName = {};
 D.drugs.forEach(d => (byName[d.name] = byName[d.name] || []).push(d));
 const resolveFor = (name, indication) => {
-  const list = byName[name];
-  const item = list.find(d => indication === undefined || d.indication === indication);
-  return R.resolve(item, list);
+  const item = byName[name].find(d => indication === undefined || d.indication === indication);
+  return R.resolve(item, D.drugs);
 };
 
 // ── 解析 ────────────────────────────────────────────────
@@ -51,10 +50,21 @@ eq('IV, IM 非僅肌注', R.onlyIM(info('IV, IM')), false);
 eq('針劑判定', R.hasInjection(info('IVD / >30 min')), true);
 eq('純口服不算針劑', R.hasInjection(info('PO')), false);
 
-// ── 全表沒有任何一項是空白途徑 ──────────────────────────
-const missing = D.drugs.filter(d => R.resolve(d, byName[d.name]).routes.length === 0)
+// ── 窮舉：沒有任何一種藥解析不出途徑 ────────────────────
+// 這條是安全網：未來新增的藥若忘了填途徑，這裡就會紅。
+const PD = require(new URL('../data/abx-pma-data.js', import.meta.url).pathname);
+const pool = D.drugs.concat(PD.drugs);
+const missing = pool.filter(d => R.resolve(d, pool).routes.length === 0)
   .map(d => d.name + (d.indication ? '(' + d.indication + ')' : ''));
-eq('僅 Piperacillin/tazobactam 需由介面層跨藥名繼承', missing, ['Piperacillin/tazobactam']);
+eq('全部藥品都解析得出途徑（含 PMA 型）', missing, []);
+
+// sameAs 是資料驅動的，不靠程式比對藥名
+const pipTazo = D.drugs.find(d => d.name === 'Piperacillin/tazobactam');
+eq('Pip/tazo 在資料裡明寫 sameAs', pipTazo.sameAs, 'Piperacillin');
+eq('Pip/tazo 依 sameAs 取得途徑', R.resolve(pipTazo, pool).routes.map(r => r.key), ['IV', 'IM']);
+eq('Pip/tazo 標記為繼承而來', R.resolve(pipTazo, pool).inherited, true);
+eq('沒有 sameAs 也沒有同名兄弟時不會亂繼承',
+  R.resolve({ name: '不存在的藥', route: '' }, pool).routes, []);
 
 console.log(`\n通過 ${pass} ／ 失敗 ${fail}`);
 process.exit(fail ? 1 : 0);

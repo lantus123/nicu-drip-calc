@@ -100,6 +100,8 @@ const has = (label, got, ...want) => {
   ok ? pass++ : fail++;
   console.log(`${ok ? 'OK  ' : 'FAIL'} ${label}` + (ok ? '' : `\n      got: ${got.slice(0, 400)}\n      want all of: ${want.join(' | ')}`));
 };
+const eq2 = (label, got, want) => { const ok = JSON.stringify(got) === JSON.stringify(want); ok ? pass++ : fail++;
+  console.log(`${ok ? 'OK  ' : 'FAIL'} ${label}` + (ok ? '' : ` got=${JSON.stringify(got)} want=${JSON.stringify(want)}`)); };
 const is = (label, got, want) => { const ok = got === want; ok ? pass++ : fail++;
   console.log(`${ok ? 'OK  ' : 'FAIL'} ${label}` + (ok ? '' : ` got=${JSON.stringify(got)} want=${JSON.stringify(want)}`)); };
 
@@ -311,6 +313,24 @@ has('Pip/tazo 由介面層沿用 Piperacillin 的途徑', text('abxResult'), '�
 clearAll(); clickChip('Penicillin G');
 has('輸注說明與途徑分開呈現', text('abxResult'), '針劑 IV', '>30 min');
 has('完整表也有途徑標記', fullText(), '針劑 IV', '僅口服 PO');
+
+// ── 窮舉：每一種藥的卡片都必須渲染出途徑標記 ──────────────
+// 邏輯層解析得出來，不代表畫面上有渲染；這條補住那個缺口。
+setPatient({ bw: 2500, days: 3, ga: 38 });
+const allDrugNames = [...new Set([
+  ...ABX_DATA.drugs.map(d => d.name),
+  ...ABX_PMA_DATA.drugs.map(d => d.name),
+])];
+const noBadge = [];
+for (const name of allDrugNames) {
+  clearAll();
+  clickChip(name);
+  const t = text('abxResult');
+  if (!/針劑|口服|ETT/.test(t)) noBadge.push(name);
+}
+eq2('每一種藥的卡片都有途徑標記', noBadge, []);
+is('確實走過全部藥品', allDrugNames.length, 27);
+clearAll();
 
 console.log(`\n通過 ${pass} ／ 失敗 ${fail}`);
 process.exit(fail ? 1 : 0);

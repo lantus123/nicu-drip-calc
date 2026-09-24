@@ -249,15 +249,10 @@ document.addEventListener('DOMContentLoaded', function () {
       + '</div>' + res + '</div>';
   }
 
-  // 原表 Route 欄多處為合併儲存格，先找同藥名的其他列，
-  // Piperacillin/tazobactam 則明確沿用 Piperacillin
+  // 途徑的繼承關係寫在資料裡（同藥名或 sameAs），這裡只負責提供完整的藥品池
+  var ROUTE_POOL = D.drugs.concat(PD.drugs);
   function routeOf(item) {
-    var src = item.kind === 'band' ? item.band : item.pmaDrug;
-    var sibs = (byName[item.name] || []).map(function (it) { return it.kind === 'band' ? it.band : it.pmaDrug; });
-    if (/tazobactam/i.test(item.name)) {
-      sibs = sibs.concat((byName['Piperacillin'] || []).map(function (it) { return it.band; }));
-    }
-    return window.RouteInfo.resolve(src, sibs);
+    return window.RouteInfo.resolve(item.kind === 'band' ? item.band : item.pmaDrug, ROUTE_POOL);
   }
 
   function warnBox(tone, text) {
