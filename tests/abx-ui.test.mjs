@@ -28,13 +28,13 @@ function makeEl(id) {
     },
     appendChild(c){ this.children.push(c); if (!this.value) this.value = c.value; },
     addEventListener(ev, fn){ this._h[ev] = fn; },
-    setAttribute(k,v){ this['_'+k] = v; }, getAttribute(k){ return this['_'+k]; } };
+    setAttribute(k,v){ this['_'+k] = v; if (k === 'data-quick') this._quick = v; }, getAttribute(k){ return this['_'+k]; } };
   return el;
 }
 const document = {
   addEventListener: (ev, fn) => { docHandlers[ev] = fn; },
   getElementById: id => { if (!els.has(id)) els.set(id, makeEl(id)); return els.get(id); },
-  createElement: () => makeEl('opt'),
+  createElement: (tag) => { const el = makeEl(tag || 'opt'); el.tag = tag; return el; },
   querySelectorAll: () => [],
   body: { appendChild(){}, removeChild(){} },
 };
@@ -253,6 +253,30 @@ clearAll(); setPatient({ bw: 1200, days: 3, ga: 28 });
 addDrug('Ampicillin', 'Usual');
 has('pma 卡片覆核 60 → 符合', review(0, 60), '符合本表建議');
 has('pma 卡片覆核 120 → 偏高', review(0, 120), '高於本表上限');
+
+// ── 常用藥快速加入（2026-09-24）────────────────────────
+const groups = $('abxDrug').children;
+is('下拉分成「常用」與「全部」兩群', groups.length, 2);
+is('常用群有三種', groups[0].children.map(o => o.value).join('|'), 'Ampicillin|Gentamicin|Cefotaxime (Claforan)');
+is('全部群含 24 種 band 型 + 3 種 pma 型 = 27 個藥名',
+  groups[1].children.length, new Set([...ABX_DATA.drugs.map(d => d.name), ...ABX_PMA_DATA.drugs.map(d => d.name)]).size);
+is('預設選到 Ampicillin', $('abxDrug').value, 'Ampicillin');
+
+const quick = $('abxQuickAdd');
+is('三個快速加入按鈕', quick.children.filter(c => c._quick).length, 3);
+const clickQuick = name => quick._h.click({ target: { getAttribute: k => (k === 'data-quick' ? name : null) } });
+
+clearAll(); setPatient({ bw: 1200, days: 3, ga: 28 });
+clickQuick('Ampicillin');
+has('快速加入 Ampicillin（預設 Usual）', text('abxResult'), 'Ampicillin', 'Usual', '60 mg q12h');
+clickQuick('Gentamicin');
+has('快速加入 Gentamicin（預設 ODD）', text('abxResult'), 'Gentamicin', '(ODD)');
+clickQuick('Cefotaxime (Claforan)');
+has('快速加入 Cefotaxime（預設 sepsis）', text('abxResult'), 'Cefotaxime (Claforan)', 'sepsis');
+is('三張卡', (text('abxResult').match(/計算過程/g) || []).length, 3);
+clickQuick('Ampicillin');
+is('重複快速加入不會變成兩張', (text('abxResult').match(/Ampicillin/g) || []).length, 1);
+is('非快速加入按鈕的點擊不觸發', (quick._h.click({ target: { getAttribute: () => null } }), true), true);
 
 console.log(`\n通過 ${pass} ／ 失敗 ${fail}`);
 process.exit(fail ? 1 : 0);

@@ -39,9 +39,37 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     });
   });
-  Object.keys(byName).sort().forEach(function (name) {
+  // NICU 經驗性治療最常開的三種，放在下拉最上方並提供一鍵加入
+  var COMMON = ['Ampicillin', 'Gentamicin', 'Cefotaxime (Claforan)'];
+  var available = COMMON.filter(function (n) { return byName[n]; });
+
+  function addOption(parent, name) {
     var o = document.createElement('option'); o.value = name; o.textContent = name;
-    $('abxDrug').appendChild(o);
+    parent.appendChild(o);
+  }
+  if (available.length) {
+    var gCommon = document.createElement('optgroup'); gCommon.label = '常用';
+    available.forEach(function (n) { addOption(gCommon, n); });
+    $('abxDrug').appendChild(gCommon);
+  }
+  var gAll = document.createElement('optgroup'); gAll.label = '全部';
+  Object.keys(byName).sort().forEach(function (name) { addOption(gAll, name); });
+  $('abxDrug').appendChild(gAll);
+
+  // 一鍵加入：各藥使用其預設用法（Gentamicin 為 ODD、Ampicillin 為 Usual）
+  available.forEach(function (name) {
+    var b = document.createElement('button');
+    b.className = 'btn rounded-lg border border-cyan-300 bg-white px-3 py-1.5 text-sm font-medium text-cyan-800 hover:bg-cyan-50';
+    b.textContent = '＋ ' + name;
+    b.setAttribute('data-quick', name);
+    $('abxQuickAdd').appendChild(b);
+  });
+  $('abxQuickAdd').addEventListener('click', function (e) {
+    var n = e.target && e.target.getAttribute && e.target.getAttribute('data-quick');
+    if (!n) return;
+    $('abxDrug').value = n;
+    refreshVariants();
+    add();
   });
 
   function variantLabel(it) { return it.variant || '標準'; }
