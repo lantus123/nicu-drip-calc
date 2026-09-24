@@ -47,6 +47,7 @@ globalThis.ABX_PMA_DATA = require(new URL('../data/abx-pma-data.js', import.meta
 globalThis.AbxPmaLogic = require(new URL('../lib/abx-pma-logic.js', import.meta.url).pathname);
 globalThis.self = globalThis;
 globalThis.Patient = require(new URL('../lib/patient.js', import.meta.url).pathname);
+globalThis.RouteInfo = require(new URL('../lib/route.js', import.meta.url).pathname);
 await import(new URL('../ui/render.js', import.meta.url));
 vm.runInThisContext('(function(){' + code + '})()');
 docHandlers.DOMContentLoaded();
@@ -289,6 +290,27 @@ has('預設 sepsis dose', text('abxResult'), '50 mg/kg/dose', '125 mg q12h');
 setCardVariant(0, 'meningitis');
 has('卡片上切成 meningitis 後劑量跟著變', text('abxResult'), '100 mg/kg/dose', '250 mg q12h');
 is('切換後仍只有一張卡', (text('abxResult').match(/計算過程/g) || []).length, 1);
+
+// ── 給藥途徑標記（2026-09-24）────────────────────────────
+clearAll(); setPatient({ bw: 2500, days: 3 });
+clickChip('Cefazolin');
+has('針劑標記', text('abxResult'), '針劑 IV', '針劑 IM');
+clearAll(); clickChip('Erythromycin');
+has('僅口服會標明「僅」', text('abxResult'), '僅口服 PO');
+is('僅口服者不出現針劑標記', text('abxResult').includes('針劑'), false);
+clearAll(); clickChip('Penicillin benzathine');
+has('僅肌注會標明「僅」', text('abxResult'), '僅針劑 IM');
+clearAll(); clickChip('Clindamycin');
+has('多途徑三個都列出', text('abxResult'), '針劑 IV', '針劑 IM', '口服 PO');
+clearAll(); clickChip('Cefotaxime (Claforan)');
+setCardVariant(0, 'meningitis');
+has('原本空白的 meningitis 變體現在有途徑並標明沿用',
+  text('abxResult'), '針劑 IV', '針劑 IM', '合併儲存格');
+clearAll(); clickChip('Piperacillin/tazobactam');
+has('Pip/tazo 由介面層沿用 Piperacillin 的途徑', text('abxResult'), '針劑 IV', '針劑 IM');
+clearAll(); clickChip('Penicillin G');
+has('輸注說明與途徑分開呈現', text('abxResult'), '針劑 IV', '>30 min');
+has('完整表也有途徑標記', fullText(), '針劑 IV', '僅口服 PO');
 
 console.log(`\n通過 ${pass} ／ 失敗 ${fail}`);
 process.exit(fail ? 1 : 0);

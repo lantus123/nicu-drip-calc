@@ -118,6 +118,21 @@ Relapse 列缺 Daily therapy 與 duration，因此只提供 Day 1。
 
 重複選入同一藥不會產生第二張卡；每張卡可單獨移除，或按「清空」全部清掉。
 
+## 給藥途徑
+
+口服與針劑以**標記**呈現，不是小灰字 —— 途徑弄錯是實際的用藥錯誤，值得佔視覺預算：
+
+- `針劑 IV`／`針劑 IM`（灰）、`口服 PO`（綠）、`ETT`（紫）
+- **單一途徑會標明「僅」**：Erythromycin → `僅口服 PO`；Penicillin benzathine → `僅針劑 IM`
+- 輸注說明與途徑分離：`IVD / >30 min` → 標記 `針劑 IV` ＋ 附註 `>30 min`
+
+顏色刻意與「答案」（cyan）和「警示」（紅／琥珀）錯開。
+
+**合併儲存格的繼承**：原表 Route 欄多處為合併儲存格，Cefotaxime／Meropenem／Oxacillin
+的 meningitis 變體與 Penicillin G 的 GBS 列原本**畫面上完全沒有途徑資訊**。
+現在會沿用同藥其他列的途徑並標示「原表此列 Route 為合併儲存格，沿用同藥」；
+Piperacillin/tazobactam 則由介面層沿用 Piperacillin。
+
 ## 選藥方式
 
 **不使用下拉選單。** 27 種藥全部以 chip 呈現，一下點到即加入：
@@ -236,6 +251,7 @@ interval 超過 24 小時者（q36h／q48h）標示為「平均每日」而非�
 ```
 index.html          只有骨架與版面，不含程式邏輯
 lib/patient.js      共用病人資料與「用哪個體重」的規則
+lib/route.js        給藥途徑解析與合併儲存格繼承
 ui/render.js        各分頁共用的呈現元件（計算過程、指引、來源對照、範圍帶、完整表）
 ui/patient-bar.js   病人資料列的收合與摘要
 ui/                 各分頁的介面邏輯（drip / abx / misc / flu）
@@ -253,16 +269,17 @@ tests/              node 原生執行，無相依套件
 
 顯示的數值一律四捨五入至**小數第 2 位**（例：1.25 mL/kg × 1.5 kg = 1.875 → 顯示 1.88 mL）。
 
-測試（共 380 項）：
+測試（共 418 項）：
 
 ```bash
 node tests/abx.test.mjs       # 抗生素資料 + 選格 + 覆核 + 分界（60）
 node tests/abx-pma.test.mjs   # PMA × 日齡型抗生素（50）
-node tests/abx-ui.test.mjs    # 抗生素分頁端到端＋多選＋來源對照＋完整表＋PMA 型＋chip 選藥（87）
+node tests/abx-ui.test.mjs    # 抗生素分頁端到端＋多選＋完整表＋PMA 型＋chip＋途徑（97）
 node tests/misc.test.mjs      # 其他藥物資料 + 換算（30）
 node tests/misc-ui.test.mjs   # 其他藥物分頁端到端＋計算過程（24）
 node tests/flu.test.mjs       # Fluconazole 資料 + 換算 + 腎調整（48）
 node tests/flu-ui.test.mjs    # Fluconazole 分頁端到端＋計算過程（26）
+node tests/route.test.mjs     # 給藥途徑解析與合併儲存格繼承（25）
 node tests/patient.test.mjs   # 病人資料與體重規則（15）
 node tests/patient-bar.test.mjs # 病人資料列收合與摘要（9）
 node tests/wiring.test.mjs    # DOM 接線靜態檢查（8）

@@ -123,7 +123,8 @@ document.addEventListener('DOMContentLoaded', function () {
     var head = '<div class="flex items-start justify-between gap-2">'
       + '<div class="text-base"><span class="font-bold text-gray-900">' + esc(item.name) + '</span>'
       + variantHtml
-      + (item.route ? ' <span class="text-sm text-gray-500">· ' + esc(item.route) + '</span>' : '') + '</div>'
+      + '<div class="mt-1.5">' + R.routeBadgesHtml(routeOf(item)) + '</div>'
+      + '</div>'
       + '<button data-remove="' + idx + '" class="btn shrink-0 rounded px-2 py-1 text-sm text-gray-400 hover:bg-gray-100 hover:text-gray-700" title="移除">✕</button>'
       + '</div>';
 
@@ -246,6 +247,17 @@ document.addEventListener('DOMContentLoaded', function () {
       +     '<select data-interval="' + idx + '" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input">' + opts + '</select></div>'
       +   '<button data-review="' + idx + '" class="btn h-11 whitespace-nowrap rounded-lg bg-slate-600 px-4 text-sm font-bold text-white hover:bg-slate-700">覆核</button>'
       + '</div>' + res + '</div>';
+  }
+
+  // 原表 Route 欄多處為合併儲存格，先找同藥名的其他列，
+  // Piperacillin/tazobactam 則明確沿用 Piperacillin
+  function routeOf(item) {
+    var src = item.kind === 'band' ? item.band : item.pmaDrug;
+    var sibs = (byName[item.name] || []).map(function (it) { return it.kind === 'band' ? it.band : it.pmaDrug; });
+    if (/tazobactam/i.test(item.name)) {
+      sibs = sibs.concat((byName['Piperacillin'] || []).map(function (it) { return it.band; }));
+    }
+    return window.RouteInfo.resolve(src, sibs);
   }
 
   function warnBox(tone, text) {

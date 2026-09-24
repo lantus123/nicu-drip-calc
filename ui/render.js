@@ -135,9 +135,10 @@
     var body = data.drugs.map(function (d) {
       var activeBand = active[d.id];
       var on = activeBand !== undefined;
+      var rinfo = root.RouteInfo ? root.RouteInfo.resolve(d, data.drugs.filter(function (x) { return x.name === d.name; })) : null;
       var label = esc(d.name)
         + (d.indication || d.regimen ? ' <span class="text-gray-400">(' + esc(d.indication || d.regimen) + ')</span>' : '')
-        + (d.route ? '<div class="text-xs text-gray-400">' + esc(d.route) + '</div>' : '');
+        + (rinfo && rinfo.routes.length ? '<div class="mt-1">' + routeBadgesHtml(rinfo, { hideNote: true }) + '</div>' : '');
       var cells;
       if (d.freeText && !d.doses[bands[0].id]) {
         cells = '<td colspan="' + bands.length + '" class="border border-gray-200 px-2 py-1 text-xs text-gray-500">' + esc(d.freeText) + '</td>';
@@ -168,7 +169,31 @@
       + '</details>';
   }
 
+  // 給藥途徑標記：口服與針劑必須一眼分得出來，且單一途徑要標明「僅」。
+  // 顏色刻意與「答案」（cyan）和「警示」（紅／琥珀）錯開，口服用綠系。
+  function routeBadgesHtml(info, opts) {
+    opts = opts || {};
+    if (!info || !info.routes.length) return '';
+    var only = info.routes.length === 1;
+    var badges = info.routes.map(function (r) {
+      var oral = r.kind === 'oral';
+      var cls = oral
+        ? 'border-emerald-400 bg-emerald-50 text-emerald-800'
+        : (r.kind === 'ett' ? 'border-violet-300 bg-violet-50 text-violet-800'
+                            : 'border-slate-300 bg-slate-100 text-slate-700');
+      var prefix = oral ? '口服 ' : (r.kind === 'ett' ? '' : '針劑 ');
+      var restrict = only && (oral || r.key === 'IM') ? '僅' : '';
+      return '<span class="inline-block rounded border px-2 py-0.5 text-xs font-semibold ' + cls + '">'
+        + restrict + prefix + esc(r.label) + '</span>';
+    }).join(' ');
+    var note = info.note && !opts.hideNote
+      ? ' <span class="text-xs text-gray-500">' + esc(info.note) + '</span>' : '';
+    var inh = info.inherited && !opts.hideNote
+      ? ' <span class="text-xs text-gray-400">（原表此列 Route 為合併儲存格，沿用同藥）</span>' : '';
+    return '<span class="inline-flex flex-wrap items-center gap-1 align-middle">' + badges + note + inh + '</span>';
+  }
+
   root.UiRender = { esc: esc, stepsHtml: stepsHtml, guideHtml: guideHtml,
                     bandTableHtml: bandTableHtml, rangeBarHtml: rangeBarHtml,
-                    fullTableHtml: fullTableHtml };
+                    fullTableHtml: fullTableHtml, routeBadgesHtml: routeBadgesHtml };
 }(typeof self !== 'undefined' ? self : this));

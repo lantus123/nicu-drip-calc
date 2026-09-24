@@ -77,7 +77,8 @@
 
       box.innerHTML = '<div class="border-t border-gray-300 pt-2 mt-2">'
         + '<div class="text-sm text-gray-600 mb-1"><span class="font-bold text-gray-800">' + esc(drug.name) + '</span>'
-        + (drug.route ? ' · ' + esc(drug.route) : '') + '</div>'
+        + '</div>'
+        + '<div class="mt-1.5">' + R.routeBadgesHtml(window.RouteInfo.parse(drug.route)) + '</div>'
         + rowsHtml
         + R.stepsHtml(L.explain(drug, w))
         + extraHtml + '</div>';
