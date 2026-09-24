@@ -63,13 +63,15 @@ const setPatient = ({ bw = '', cw = '', days = '', ga = '' }) => {
 };
 // 點 chip 加入；需要特定適應症時再於卡片上切換
 const clickChip = name => $('abxChips')._h.click({ target: { getAttribute: k => (k === 'data-drug' ? name : null) } });
+// 用法是一整排按鈕；找出該卡對應標籤的按鈕索引再模擬點擊
 const setCardVariant = (idx, label) => {
   const html = $('abxResult').innerHTML;
-  const seg = html.split(`data-variant="${idx}"`)[1] || '';
-  const opts = [...seg.matchAll(/<option value="(\d+)"[^>]*>([^<]*)<\/option>/g)];
-  const hit = opts.find(o => o[2] === label);
-  if (!hit) throw new Error('找不到適應症 ' + label + '：' + opts.map(o => o[2]));
-  $('abxResult')._h.change({ target: { getAttribute: k => (k === 'data-variant' ? String(idx) : null), value: hit[1] } });
+  const btns = [...html.matchAll(/data-variant="(\d+)" data-choice="(\d+)"[^>]*>([^<]*)</g)]
+    .filter(m => m[1] === String(idx));
+  const hit = btns.find(m => m[3].trim() === label);
+  if (!hit) throw new Error('找不到用法 ' + label + '：' + btns.map(m => m[3].trim()));
+  $('abxResult')._h.click({ target: { getAttribute: k =>
+    k === 'data-variant' ? String(idx) : (k === 'data-choice' ? hit[2] : null) } });
 };
 const addDrug = (drug, variant) => {
   clickChip(drug);
@@ -120,8 +122,10 @@ has('<1200g 且 >4 週：非註1 藥拒答',
   run({ drug: 'Cefazolin', bw: 1000, days: 40 }), '超過 4 週無建議劑量');
 has('Gentamicin 預設 ODD（4 mg/kg/dose 為 ODD 的值）',
   run({ drug: 'Gentamicin', bw: 1500, days: 3, ga: 30 }), '4 mg/kg/dose');
-is('ODD 在卡片的適應症選單中被選取',
-  /data-variant="0"[^]*?<option value="(\d+)" selected>ODD</.test($('abxResult').innerHTML), true);
+is('ODD 那顆用法按鈕呈選中狀態',
+  /data-variant="0" data-choice="\d+"[^>]*bg-cyan-600[^>]*>ODD</.test($('abxResult').innerHTML), true);
+is('未選中的用法按鈕不是選中樣式',
+  /data-variant="0" data-choice="\d+"[^>]*bg-cyan-600[^>]*>SDD</.test($('abxResult').innerHTML), false);
 has('有血中濃度 → aminoglycoside 退場',
   run({ drug: 'Gentamicin', bw: 1500, days: 3, levels: true }), '請依血中濃度調整');
 has('PMA>44 出註2提醒', run({ drug: 'Gentamicin', bw: 3000, days: 60, ga: 38 }), '註2');
@@ -331,6 +335,28 @@ for (const name of allDrugNames) {
 eq2('每一種藥的卡片都有途徑標記', noBadge, []);
 is('確實走過全部藥品', allDrugNames.length, 27);
 clearAll();
+
+// ── 版面清晰度（2026-09-24）────────────────────────────
+clearAll(); setPatient({ bw: 1200, days: 3, ga: 28 });
+clickChip('Ampicillin');
+const ampHtml = $('abxResult').innerHTML;
+has('用法以整排按鈕呈現並有標籤', text('abxResult'), '用法', 'Usual', 'Sepsis', 'Meningitis');
+is('用法是按鈕不是下拉（覆核的 interval 仍為下拉，不在此列）',
+  ampHtml.includes('data-choice="0"') && !/<select[^>]*data-variant/.test(ampHtml), true);
+is('PMA 判讀為灰色註記，不混進琥珀警示',
+  ampHtml.includes('判讀：') && !/bg-amber-50[^>]*>[^<]*⚠[^<]*完成週數/.test(ampHtml), true);
+is('細節收成一組（單一外框內含多個 details）',
+  (ampHtml.match(/divide-y divide-gray-200 rounded-lg border/g) || []).length, 1);
+
+clearAll(); clickChip('Cefotaxime (Claforan)');
+has('多用法時按鈕全部可見', text('abxResult'), '用法', 'sepsis', 'meningitis');
+setCardVariant(0, 'meningitis');
+has('點按鈕即切換', text('abxResult'), '100 mg/kg/dose');
+
+clearAll(); setPatient({ bw: 1950, days: 3 });
+clickChip('Cefazolin');
+const nearHtml = $('abxResult').innerHTML;
+is('真正的病人警示仍是琥珀色', /bg-amber-50/.test(nearHtml) && nearHtml.includes('分界僅 50 g'), true);
 
 console.log(`\n通過 ${pass} ／ 失敗 ${fail}`);
 process.exit(fail ? 1 : 0);

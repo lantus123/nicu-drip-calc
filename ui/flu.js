@@ -81,8 +81,10 @@
 
       // 警示（常駐）：來源本身的缺陷與會影響劑量的判讀，不可收合
       // interval 依據與進位那一步已在計算過程中呈現，不在此重複
+      // 來源本身的缺陷維持警示；GA 的判讀屬說明，改為灰色註記
+      var interpret = out.gaWordingNote
+        ? '<div class="mt-2 text-sm text-gray-500">判讀：' + esc(out.gaWordingNote) + '</div>' : '';
       var notes = [];
-      if (out.gaWordingNote) notes.push(out.gaWordingNote);
       if (out.spanned) notes.push('原表此列 Day 1 與 Daily therapy 為合併儲存格，兩者同劑量');
       if (out.incomplete) notes.push('原表此列缺 Daily therapy 與 duration，僅能提供 Day 1');
       if (out.renalNote) notes.push(out.renalNote);
@@ -91,6 +93,7 @@
         + '<div class="text-sm text-gray-600 mb-1"><span class="font-bold text-gray-800">' + esc(D.drug) + '</span>'
         + (out.indication ? ' · ' + esc(out.indication.name) : '') + '</div>'
         + rowsHtml
+        + interpret
         + R.stepsHtml(L.explain(D, out, w))
         + R.guideHtml(guide)
         + '<div class="mt-3 space-y-1">' + notes.map(function (t) {

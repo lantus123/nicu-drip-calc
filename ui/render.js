@@ -9,7 +9,7 @@
   // 計算過程：每一行都要能被獨立驗算，故預設展開
   function stepsHtml(steps) {
     if (!steps || !steps.length) return '';
-    return '<details open class="mt-4">'
+    return '<details open class="mt-0">'
       + '<summary class="text-sm font-semibold text-gray-600 cursor-pointer select-none hover:text-gray-900 hover:underline">計算過程（' + steps.length + ' 步）</summary>'
       + '<div class="steps mt-2 border border-gray-200 rounded-lg overflow-hidden">'
       + steps.map(function (st, i) {
@@ -31,7 +31,7 @@
       .concat((a.notes || []).map(function (x) { return { t: x, warn: false }; }))
       .concat((a.cautions || []).map(function (x) { return { t: x, warn: true }; }));
     if (!items.length) return '';
-    return '<details class="mt-3">'
+    return '<details class="mt-0">'
       + '<summary class="text-sm font-semibold text-gray-600 cursor-pointer select-none hover:text-gray-900 hover:underline">給藥指引（' + items.length + ' 項）</summary>'
       + '<div class="mt-2 space-y-1">'
       + items.map(function (it) {
@@ -193,7 +193,30 @@
     return '<span class="inline-flex flex-wrap items-center gap-1 align-middle">' + badges + note + inh + '</span>';
   }
 
+  // 用法／適應症：改用整排可見的按鈕，而不是藏在下拉裡。
+  // 「可以按」要看得出來，選項也要一眼看完。
+  function choiceHtml(label, options, activeIndex, attr, idx) {
+    if (!options || options.length < 2) return '';
+    return '<div class="mt-2 flex flex-wrap items-center gap-2">'
+      + '<span class="text-sm font-semibold text-gray-500">' + esc(label) + '</span>'
+      + options.map(function (o, i) {
+          var on = i === activeIndex;
+          return '<button ' + attr + '="' + idx + '" data-choice="' + i + '" class="btn rounded-full border px-3 py-1 text-sm font-medium '
+            + (on ? 'border-cyan-500 bg-cyan-600 text-white' : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-100')
+            + '">' + esc(o) + '</button>';
+        }).join('')
+      + '</div>';
+  }
+
+  // 把可展開的細節收成一組，而不是三個散落的連結
+  function detailsGroupHtml(parts) {
+    var body = parts.filter(Boolean).join('');
+    if (!body) return '';
+    return '<div class="mt-4 divide-y divide-gray-200 rounded-lg border border-gray-200 [&>details]:px-3 [&>details]:py-2">' + body + '</div>';
+  }
+
   root.UiRender = { esc: esc, stepsHtml: stepsHtml, guideHtml: guideHtml,
                     bandTableHtml: bandTableHtml, rangeBarHtml: rangeBarHtml,
-                    fullTableHtml: fullTableHtml, routeBadgesHtml: routeBadgesHtml };
+                    fullTableHtml: fullTableHtml, routeBadgesHtml: routeBadgesHtml,
+                    choiceHtml: choiceHtml, detailsGroupHtml: detailsGroupHtml };
 }(typeof self !== 'undefined' ? self : this));

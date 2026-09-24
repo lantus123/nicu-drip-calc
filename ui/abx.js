@@ -112,21 +112,19 @@ document.addEventListener('DOMContentLoaded', function () {
     var drug = item.kind === 'band' ? item.band : item.pmaDrug;
     var pt = P.read();
     var ew = P.effectiveWeight(pt);
-    // 適應症／給法在卡片上切換：先看到劑量，再決定要不要換
+    // 適應症／給法：整排按鈕自成一列，看得出來可以按，選項也一眼看完
     var siblings = byName[item.name] || [];
-    var variantHtml = siblings.length > 1
-      ? '<select data-variant="' + idx + '" class="ml-2 rounded border-gray-300 py-0.5 pl-2 pr-7 text-sm text-gray-700 shadow-sm focus:border-cyan-500 focus:ring-cyan-500">'
-        + siblings.map(function (sib, i) {
-            return '<option value="' + i + '"' + (sib.id === item.id ? ' selected' : '') + '>' + esc(sib.variant || '標準') + '</option>';
-          }).join('') + '</select>'
-      : (item.variant ? ' <span class="text-gray-500">(' + esc(item.variant) + ')</span>' : '');
+    var activeIdx = -1;
+    siblings.forEach(function (sib, i) { if (sib.id === item.id) activeIdx = i; });
+    var choice = R.choiceHtml('用法', siblings.map(function (sib) { return sib.variant || '標準'; }), activeIdx, 'data-variant', idx);
     var head = '<div class="flex items-start justify-between gap-2">'
-      + '<div class="text-base"><span class="font-bold text-gray-900">' + esc(item.name) + '</span>'
-      + variantHtml
+      + '<div><div class="text-lg font-bold text-gray-900">' + esc(item.name)
+      + (siblings.length <= 1 && item.variant ? ' <span class="text-base font-normal text-gray-500">(' + esc(item.variant) + ')</span>' : '')
+      + '</div>'
       + '<div class="mt-1.5">' + R.routeBadgesHtml(routeOf(item)) + '</div>'
       + '</div>'
-      + '<button data-remove="' + idx + '" class="btn shrink-0 rounded px-2 py-1 text-sm text-gray-400 hover:bg-gray-100 hover:text-gray-700" title="移除">✕</button>'
-      + '</div>';
+      + '<button data-remove="' + idx + '" class="btn shrink-0 rounded px-2 py-1 text-base text-gray-400 hover:bg-gray-100 hover:text-gray-700" title="移除">✕</button>'
+      + '</div>' + choice;
 
     var body;
     if (item.kind === 'pma') {
@@ -151,9 +149,11 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!res.ok) {
           body = meta + warnHtml + warnBox('red', res.reason)
             + (res.freeText || res.raw ? '<div class="mt-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-600">原文：' + esc(res.freeText || res.raw) + '</div>' : '')
-            + R.stepsHtml(L.explain(drug, sel, res, ew, ew.g))
-            + R.bandTableHtml(D.bands, drug.doses, sel.band, D.source)
-            + R.guideHtml(ADMIN[drug.name]);
+            + R.detailsGroupHtml([
+                R.stepsHtml(L.explain(drug, sel, res, ew, ew.g)),
+                R.bandTableHtml(D.bands, drug.doses, sel.band, D.source),
+                R.guideHtml(ADMIN[drug.name]),
+              ]);
         } else {
           var pd = L.perDose(res, ew.g), dt = L.dailyTotal(res, ew.g);
           var daily = dt ? '<div class="mt-1 text-base text-cyan-700">' + (dt.averaged ? '平均每日' : '每日總量') + ' '
@@ -171,9 +171,11 @@ document.addEventListener('DOMContentLoaded', function () {
             +   range(res.min, res.max) + ' ' + esc(res.unit) + '/kg/dose ' + esc(res.interval)
             +   '</b>　原文「' + esc(res.raw) + '」</div>'
             + reviewHtml(idx, res, pd)
-            + R.stepsHtml(L.explain(drug, sel, res, ew, ew.g))
-            + R.bandTableHtml(D.bands, drug.doses, sel.band, D.source)
-            + R.guideHtml(ADMIN[drug.name]);
+            + R.detailsGroupHtml([
+                R.stepsHtml(L.explain(drug, sel, res, ew, ew.g)),
+                R.bandTableHtml(D.bands, drug.doses, sel.band, D.source),
+                R.guideHtml(ADMIN[drug.name]),
+              ]);
         }
       }
     }
@@ -189,16 +191,16 @@ document.addEventListener('DOMContentLoaded', function () {
       + (pt.pmaWeeks ? '　PMA <b class="text-gray-700">' + (Math.round(pt.pmaWeeks * 10) / 10) + ' 週</b>' : '')
       + '</div>';
 
-    var warns = [item.pmaDrug.kind === 'pma' ? PD.pmaWordingNote : null]
-      .concat(item.pmaDrug.cautions || [])
-      .concat(out.ok && out.exceeded ? [out.exceeded] : [])
-      .filter(Boolean);
+    // 病人警示（琥珀）與資料判讀（灰）分流：判讀不該跟警訊搶注意力，但也不藏起來
+    var warns = (item.pmaDrug.cautions || [])
+      .concat(out.ok && out.exceeded ? [out.exceeded] : []);
+    var interpret = PD.pmaWordingNote ? '<div class="mt-2 text-sm text-gray-500">判讀：' + esc(PD.pmaWordingNote) + '</div>' : '';
     var warnHtml = warns.length ? '<div class="mt-2 space-y-1">'
       + warns.map(function (t) { return warnBox('amber', t); }).join('') + '</div>' : '';
 
     if (!out.ok) {
       return meta + warnHtml + warnBox('red', out.reason)
-        + R.stepsHtml(PL.explain(out, w.g, pt.pmaWeeks)) + pmaGuide(item);
+        + R.detailsGroupHtml([R.stepsHtml(PL.explain(out, w.g, pt.pmaWeeks)), pmaGuide(item)]);
     }
     var pdose = out.perDose;
     var daily = out.single ? '' : '<div class="mt-1 text-base text-cyan-700">每日總量 '
@@ -215,9 +217,9 @@ document.addEventListener('DOMContentLoaded', function () {
       +   '　本表 ' + (item.regimen.basis === 'perDay'
             ? range(item.regimen.min, item.regimen.max) + ' ' + esc(pdose.unit) + '/kg/day'
             : range(item.regimen.min, item.regimen.max) + ' ' + esc(pdose.unit) + '/kg/dose') + '</div>'
+      + interpret
       + pmaReviewHtml(idx, out)
-      + R.stepsHtml(PL.explain(out, w.g, pt.pmaWeeks))
-      + pmaGuide(item);
+      + R.detailsGroupHtml([R.stepsHtml(PL.explain(out, w.g, pt.pmaWeeks)), pmaGuide(item)]);
   }
 
   function pmaGuide(item) {
@@ -304,6 +306,14 @@ document.addEventListener('DOMContentLoaded', function () {
     if (rm !== null && rm !== undefined) {
       selected.splice(parseInt(rm, 10), 1); reviewInput = {}; renderAll(); return;
     }
+    var vi = t.getAttribute && t.getAttribute('data-variant');
+    if (vi !== null && vi !== undefined) {
+      var vIdx = parseInt(vi, 10);
+      var list = byName[selected[vIdx].name] || [];
+      var next = list[parseInt(t.getAttribute('data-choice'), 10) || 0];
+      if (next) { selected[vIdx] = next; delete reviewInput[vIdx]; renderAll(); }
+      return;
+    }
     var rv = t.getAttribute && t.getAttribute('data-review');
     if (rv !== null && rv !== undefined) {
       var i = parseInt(rv, 10);
@@ -327,17 +337,6 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   renderFullTable();
-
-  // 卡片是重繪出來的，適應症切換同樣走事件委派
-  $('abxResult').addEventListener('change', function (e) {
-    var t = e.target;
-    var vi = t && t.getAttribute && t.getAttribute('data-variant');
-    if (vi === null || vi === undefined) return;
-    var idx = parseInt(vi, 10);
-    var list = byName[selected[idx].name] || [];
-    var next = list[parseInt(t.value, 10) || 0];
-    if (next) { selected[idx] = next; delete reviewInput[idx]; renderAll(); }
-  });
 
   $('abxDataVersion').textContent = D.dataVersion;
   $('abxSource').textContent = D.source;
