@@ -142,26 +142,16 @@
 
     <!-- ───────── 抗生素劑量分頁 ───────── -->
     <div id="panel-abx" class="hidden">
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-gray-50 p-4 rounded-xl border border-gray-200">
-        <div class="col-span-2">
-          <label for="abxDrug" class="compact-label">藥品</label>
-          <select id="abxDrug" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input"></select>
-        </div>
-        <div id="abxVariantWrap" class="hidden">
-          <label for="abxVariant" class="compact-label">適應症／給法</label>
-          <select id="abxVariant" class="block w-full rounded border-gray-300 shadow-sm focus:border-cyan-500 focus:ring-cyan-500 compact-input"></select>
-        </div>
-        <div class="flex items-end gap-2">
-          <button id="abxCalcBtn" class="btn bg-cyan-600 text-white font-bold rounded-lg hover:bg-cyan-700 px-4 text-sm h-11 whitespace-nowrap">加入</button>
+      <div class="rounded-xl border border-gray-200 bg-gray-50 p-4">
+        <!-- 藥品以 chip 呈現，一下點到即加入（適應症／給法在卡片上切換） -->
+        <div id="abxChips"></div>
+        <div class="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-gray-200 pt-3">
+          <label class="flex items-center gap-2 text-sm text-gray-600">
+            <input type="checkbox" id="abxHasLevels" class="rounded border-gray-300 text-cyan-600 focus:ring-cyan-500">
+            已有 peak／trough 血中濃度（aminoglycoside 將停止給建議）
+          </label>
           <button id="abxClearBtn" class="btn bg-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-300 px-4 text-sm h-11 whitespace-nowrap">清空</button>
         </div>
-        <div id="abxQuickAdd" class="col-span-2 sm:col-span-4 flex flex-wrap items-center gap-2">
-          <span class="text-sm text-gray-500">常用快速加入</span>
-        </div>
-        <label class="col-span-2 sm:col-span-4 flex items-center gap-2 text-sm text-gray-600">
-          <input type="checkbox" id="abxHasLevels" class="rounded border-gray-300 text-cyan-600 focus:ring-cyan-500">
-          已有 peak／trough 血中濃度（aminoglycoside 將停止給建議）
-        </label>
       </div>
 
       <!-- 每種選入的藥各一張卡：劑量、計算過程、給藥指引、覆核 -->

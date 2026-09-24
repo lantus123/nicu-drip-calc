@@ -39,73 +39,50 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     });
   });
-  // NICU 經驗性治療最常開的三種，放在下拉最上方並提供一鍵加入
+  // NICU 經驗性治療最常開的三種置頂；其餘收在可展開區。一下點到即加入。
   var COMMON = ['Ampicillin', 'Gentamicin', 'Cefotaxime (Claforan)'];
-  var available = COMMON.filter(function (n) { return byName[n]; });
+  var allNames = Object.keys(byName).sort();
+  var commonNames = COMMON.filter(function (n) { return byName[n]; });
 
-  function addOption(parent, name) {
-    var o = document.createElement('option'); o.value = name; o.textContent = name;
-    parent.appendChild(o);
+  function chip(name, big) {
+    return '<button data-drug="' + esc(name) + '" class="btn rounded-lg border px-3 '
+      + (big ? 'py-2.5 text-base font-bold border-cyan-300 bg-white text-cyan-800 hover:bg-cyan-50'
+             : 'py-1.5 text-sm border-gray-300 bg-white text-gray-700 hover:bg-gray-100')
+      + '">' + esc(name) + '</button>';
   }
-  if (available.length) {
-    var gCommon = document.createElement('optgroup'); gCommon.label = '常用';
-    available.forEach(function (n) { addOption(gCommon, n); });
-    $('abxDrug').appendChild(gCommon);
-  }
-  var gAll = document.createElement('optgroup'); gAll.label = '全部';
-  Object.keys(byName).sort().forEach(function (name) { addOption(gAll, name); });
-  $('abxDrug').appendChild(gAll);
+  $('abxChips').innerHTML =
+    (commonNames.length
+      ? '<div class="text-sm font-bold text-gray-500">常用</div>'
+        + '<div class="mt-2 flex flex-wrap gap-2">' + commonNames.map(function (n) { return chip(n, true); }).join('') + '</div>'
+      : '')
+    + '<details class="mt-3"><summary class="text-sm font-semibold text-gray-600 cursor-pointer select-none hover:text-gray-900 hover:underline">全部藥品（' + allNames.length + '）</summary>'
+    + '<div class="mt-2 flex flex-wrap gap-2">' + allNames.map(function (n) { return chip(n, false); }).join('') + '</div>'
+    + '</details>';
 
-  // 一鍵加入：各藥使用其預設用法（Gentamicin 為 ODD、Ampicillin 為 Usual）
-  available.forEach(function (name) {
-    var b = document.createElement('button');
-    b.className = 'btn rounded-lg border border-cyan-300 bg-white px-3 py-1.5 text-sm font-medium text-cyan-800 hover:bg-cyan-50';
-    b.textContent = '＋ ' + name;
-    b.setAttribute('data-quick', name);
-    $('abxQuickAdd').appendChild(b);
-  });
-  $('abxQuickAdd').addEventListener('click', function (e) {
-    var n = e.target && e.target.getAttribute && e.target.getAttribute('data-quick');
-    if (!n) return;
-    $('abxDrug').value = n;
-    refreshVariants();
-    add();
+  $('abxChips').addEventListener('click', function (e) {
+    var n = e.target && e.target.getAttribute && e.target.getAttribute('data-drug');
+    if (n) addByName(n);
   });
 
-  function variantLabel(it) { return it.variant || '標準'; }
-  function refreshVariants() {
-    var list = byName[$('abxDrug').value] || [], wrap = $('abxVariantWrap'), sel = $('abxVariant');
-    sel.innerHTML = '';
-    if (list.length <= 1) { wrap.classList.add('hidden'); return; }
-    list.forEach(function (d, i) {
-      var o = document.createElement('option'); o.value = String(i); o.textContent = variantLabel(d);
-      sel.appendChild(o);
-    });
-    var odd = -1;
-    list.forEach(function (it, i) { if (it.variant === 'ODD' && odd < 0) odd = i; });
-    sel.value = String(odd >= 0 ? odd : 0);
-    wrap.classList.remove('hidden');
+  // 加入時採該藥的預設用法：Gentamicin 為 ODD，其餘為第一項
+  function defaultItem(name) {
+    var list = byName[name] || [];
+    for (var i = 0; i < list.length; i++) if (list[i].variant === 'ODD') return list[i];
+    return list[0];
   }
-  function currentDrug() {
-    var list = byName[$('abxDrug').value] || [];
-    return list.length <= 1 ? list[0] : list[parseInt($('abxVariant').value, 10) || 0];
-  }
-  $('abxDrug').addEventListener('change', refreshVariants);
-  refreshVariants();
 
   // 已選入的藥；病人資料變動時整批重算
   var selected = [];
   var reviewInput = {};   // 各卡已輸入的覆核值，重算後保留
 
-  function add() {
-    var drug = currentDrug();
-    if (!drug) return;
-    var dup = selected.filter(function (it) { return it.id === drug.id; }).length > 0;
-    if (!dup) selected.push(drug);
+  function addByName(name) {
+    var item = defaultItem(name);
+    if (!item) return;
+    var dup = selected.filter(function (it) { return it.id === item.id; }).length > 0;
+    if (!dup) selected.push(item);
     renderAll();
   }
   function clearAll() { selected = []; reviewInput = {}; renderAll(); }
-  $('abxCalcBtn').addEventListener('click', add);
   $('abxClearBtn').addEventListener('click', clearAll);
   $('abxHasLevels').addEventListener('change', renderAll);
   P.onChange(renderAll);
@@ -135,9 +112,17 @@ document.addEventListener('DOMContentLoaded', function () {
     var drug = item.kind === 'band' ? item.band : item.pmaDrug;
     var pt = P.read();
     var ew = P.effectiveWeight(pt);
+    // 適應症／給法在卡片上切換：先看到劑量，再決定要不要換
+    var siblings = byName[item.name] || [];
+    var variantHtml = siblings.length > 1
+      ? '<select data-variant="' + idx + '" class="ml-2 rounded border-gray-300 py-0.5 pl-2 pr-7 text-sm text-gray-700 shadow-sm focus:border-cyan-500 focus:ring-cyan-500">'
+        + siblings.map(function (sib, i) {
+            return '<option value="' + i + '"' + (sib.id === item.id ? ' selected' : '') + '>' + esc(sib.variant || '標準') + '</option>';
+          }).join('') + '</select>'
+      : (item.variant ? ' <span class="text-gray-500">(' + esc(item.variant) + ')</span>' : '');
     var head = '<div class="flex items-start justify-between gap-2">'
       + '<div class="text-base"><span class="font-bold text-gray-900">' + esc(item.name) + '</span>'
-      + (item.variant ? ' <span class="text-gray-500">(' + esc(item.variant) + ')</span>' : '')
+      + variantHtml
       + (item.route ? ' <span class="text-sm text-gray-500">· ' + esc(item.route) + '</span>' : '') + '</div>'
       + '<button data-remove="' + idx + '" class="btn shrink-0 rounded px-2 py-1 text-sm text-gray-400 hover:bg-gray-100 hover:text-gray-700" title="移除">✕</button>'
       + '</div>';
@@ -335,6 +320,17 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   renderFullTable();
+
+  // 卡片是重繪出來的，適應症切換同樣走事件委派
+  $('abxResult').addEventListener('change', function (e) {
+    var t = e.target;
+    var vi = t && t.getAttribute && t.getAttribute('data-variant');
+    if (vi === null || vi === undefined) return;
+    var idx = parseInt(vi, 10);
+    var list = byName[selected[idx].name] || [];
+    var next = list[parseInt(t.value, 10) || 0];
+    if (next) { selected[idx] = next; delete reviewInput[idx]; renderAll(); }
+  });
 
   $('abxDataVersion').textContent = D.dataVersion;
   $('abxSource').textContent = D.source;

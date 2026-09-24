@@ -118,14 +118,20 @@ Relapse 列缺 Daily therapy 與 duration，因此只提供 Day 1。
 
 重複選入同一藥不會產生第二張卡；每張卡可單獨移除，或按「清空」全部清掉。
 
-## 常用藥
+## 選藥方式
 
-藥品下拉分成「常用」與「全部」兩群，**常用**為 NICU 經驗性治療最常開的三種：
-Ampicillin、Gentamicin、Cefotaxime (Claforan)，並置於最上方（預設選到 Ampicillin）。
+**不使用下拉選單。** 27 種藥全部以 chip 呈現，一下點到即加入：
 
-輸入區另有一排一鍵加入按鈕，各藥使用其預設用法（Ampicillin → Usual、
-Gentamicin → ODD、Cefotaxime → sepsis）。常見的 Ampicillin + Gentamicin
-經驗性組合兩下就出來。
+- **常用**（置頂常駐）：Ampicillin、Gentamicin、Cefotaxime (Claforan)
+- **全部藥品（27）**：收在可展開區
+
+理由是下拉在手機上是滾輪選單，選一個藥要滑好幾下；chip 一律一次點到，
+戴手套也好按。經驗性治療的 Ampicillin + Gentamicin 是兩下。
+
+**適應症／給法在卡片上切換**，不是加入前選。點 chip 先以預設用法加入
+（Gentamicin → ODD，其餘取第一項），看到劑量後再決定要不要換成
+meningitis dose —— 這比在還沒看到數字前就要決定更合理，也是 chip
+能一下點到的前提。
 
 ## 兩種查表型態
 
@@ -243,12 +249,12 @@ tests/              node 原生執行，無相依套件
 
 顯示的數值一律四捨五入至**小數第 2 位**（例：1.25 mL/kg × 1.5 kg = 1.875 → 顯示 1.88 mL）。
 
-測試（共 379 項）：
+測試（共 380 項）：
 
 ```bash
 node tests/abx.test.mjs       # 抗生素資料 + 選格 + 覆核 + 分界（60）
 node tests/abx-pma.test.mjs   # PMA × 日齡型抗生素（50）
-node tests/abx-ui.test.mjs    # 抗生素分頁端到端＋多選＋來源對照＋完整表＋PMA 型＋常用藥（86）
+node tests/abx-ui.test.mjs    # 抗生素分頁端到端＋多選＋來源對照＋完整表＋PMA 型＋chip 選藥（87）
 node tests/misc.test.mjs      # 其他藥物資料 + 換算（30）
 node tests/misc-ui.test.mjs   # 其他藥物分頁端到端＋計算過程（24）
 node tests/flu.test.mjs       # Fluconazole 資料 + 換算 + 腎調整（48）

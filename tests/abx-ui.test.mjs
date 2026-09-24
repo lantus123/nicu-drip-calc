@@ -60,17 +60,21 @@ const setPatient = ({ bw = '', cw = '', days = '', ga = '' }) => {
   $('pBirthWeight').value = String(bw); $('pCurrentWeight').value = String(cw);
   $('pAgeDays').value = String(days); $('pGaWeeks').value = String(ga);
 };
-const setVariant = label => {
-  const sel = $('abxVariant');
-  const i = sel.children.findIndex(o => o.textContent === label);
-  if (i < 0) throw new Error('找不到變體 ' + label + '：' + sel.children.map(o => o.textContent));
-  sel.value = String(i);
+// 點 chip 加入；需要特定適應症時再於卡片上切換
+const clickChip = name => $('abxChips')._h.click({ target: { getAttribute: k => (k === 'data-drug' ? name : null) } });
+const setCardVariant = (idx, label) => {
+  const html = $('abxResult').innerHTML;
+  const seg = html.split(`data-variant="${idx}"`)[1] || '';
+  const opts = [...seg.matchAll(/<option value="(\d+)"[^>]*>([^<]*)<\/option>/g)];
+  const hit = opts.find(o => o[2] === label);
+  if (!hit) throw new Error('找不到適應症 ' + label + '：' + opts.map(o => o[2]));
+  $('abxResult')._h.change({ target: { getAttribute: k => (k === 'data-variant' ? String(idx) : null), value: hit[1] } });
 };
 const addDrug = (drug, variant) => {
-  $('abxDrug').value = drug; $('abxDrug')._h.change();
-  if (variant) setVariant(variant);
-  $('abxCalcBtn')._h.click();
+  clickChip(drug);
+  if (variant) setCardVariant(selectedCount() - 1, variant);
 };
+const selectedCount = () => ($('abxResult').innerHTML.match(/data-remove="/g) || []).length;
 const clearAll = () => $('abxClearBtn')._h.click();
 // 事件委派：模擬點到帶有該屬性的按鈕
 const clickIn = (attr, idx) => $('abxResult')._h.click({ target: { getAttribute: k => (k === attr ? String(idx) : null) } });
@@ -111,8 +115,10 @@ has('<1200g 且 >4 週：註1 藥改 q8h',
   run({ drug: 'Meropenem', variant: 'sepsis', bw: 1000, days: 40 }), 'q8h', '依註1', '20 mg');
 has('<1200g 且 >4 週：非註1 藥拒答',
   run({ drug: 'Cefazolin', bw: 1000, days: 40 }), '超過 4 週無建議劑量');
-has('Gentamicin 預設 ODD',
-  run({ drug: 'Gentamicin', bw: 1500, days: 3, ga: 30 }), '(ODD)', '4 mg/kg/dose');
+has('Gentamicin 預設 ODD（4 mg/kg/dose 為 ODD 的值）',
+  run({ drug: 'Gentamicin', bw: 1500, days: 3, ga: 30 }), '4 mg/kg/dose');
+is('ODD 在卡片的適應症選單中被選取',
+  /data-variant="0"[^]*?<option value="(\d+)" selected>ODD</.test($('abxResult').innerHTML), true);
 has('有血中濃度 → aminoglycoside 退場',
   run({ drug: 'Gentamicin', bw: 1500, days: 3, levels: true }), '請依血中濃度調整');
 has('PMA>44 出註2提醒', run({ drug: 'Gentamicin', bw: 3000, days: 60, ga: 38 }), '註2');
@@ -217,13 +223,10 @@ const order3 = run({ drug: 'Cefazolin', bw: 2500, days: 3 });
 is('覆核排在計算過程之前', order3.indexOf('覆核：我打算開每劑') < order3.indexOf('計算過程'), true);
 
 // ── PMA 型藥品併入同一個分頁（2026-09-24）──────────────
-clearAll();
-$('abxDrug').value = 'Ampicillin'; $('abxDrug')._h.change();
-is('Ampicillin 出現在同一個藥品下拉', $('abxDrug').children.some(o => o.value === 'Ampicillin'), true);
-has('Ampicillin 有三種用法可選', $('abxVariant').children.map(o => o.textContent).join('|'), 'Usual', 'Sepsis', 'Meningitis');
-
-setPatient({ bw: 1200, days: 3, ga: 28 });
+clearAll(); setPatient({ bw: 1200, days: 3, ga: 28 });
+is('Ampicillin 出現在 chip 清單', $('abxChips').innerHTML.includes('data-drug="Ampicillin"'), true);
 addDrug('Ampicillin', 'Usual');
+has('Ampicillin 三種用法都在卡片的選單裡', $('abxResult').innerHTML, 'Usual', 'Sepsis', 'Meningitis');
 has('Ampicillin 1.2kg PMA28.4 d3 → 60 mg q12h',
   text('abxResult'), 'Ampicillin', 'Usual', 'PMA', '每劑', '60 mg q12h', '每日總量 120 mg/day');
 has('依 PMA 帶判定並顯示依據', text('abxResult'), 'PMA <30 週，日齡 0-28 天');
@@ -254,29 +257,34 @@ addDrug('Ampicillin', 'Usual');
 has('pma 卡片覆核 60 → 符合', review(0, 60), '符合本表建議');
 has('pma 卡片覆核 120 → 偏高', review(0, 120), '高於本表上限');
 
-// ── 常用藥快速加入（2026-09-24）────────────────────────
-const groups = $('abxDrug').children;
-is('下拉分成「常用」與「全部」兩群', groups.length, 2);
-is('常用群有三種', groups[0].children.map(o => o.value).join('|'), 'Ampicillin|Gentamicin|Cefotaxime (Claforan)');
-is('全部群含 24 種 band 型 + 3 種 pma 型 = 27 個藥名',
-  groups[1].children.length, new Set([...ABX_DATA.drugs.map(d => d.name), ...ABX_PMA_DATA.drugs.map(d => d.name)]).size);
-is('預設選到 Ampicillin', $('abxDrug').value, 'Ampicillin');
-
-const quick = $('abxQuickAdd');
-is('三個快速加入按鈕', quick.children.filter(c => c._quick).length, 3);
-const clickQuick = name => quick._h.click({ target: { getAttribute: k => (k === 'data-quick' ? name : null) } });
+// ── chip 選藥（2026-09-24）──────────────────────────────
+const chipsHtml = $('abxChips').innerHTML;
+const posOf = n => chipsHtml.indexOf('data-drug="' + n + '"');
+const detailsAt = chipsHtml.indexOf('<details');
+is('常用三種都在可展開區之前（即置頂）',
+  ['Ampicillin', 'Gentamicin', 'Cefotaxime (Claforan)'].every(n => posOf(n) > -1 && posOf(n) < detailsAt), true);
+is('常用列依 COMMON 順序排列',
+  posOf('Ampicillin') < posOf('Gentamicin') && posOf('Gentamicin') < posOf('Cefotaxime (Claforan)'), true);
+is('全部藥品收在可展開區', /<details[^]*?全部藥品（27）/.test(chipsHtml), true);
+is('chip 總數 = 3 常用 + 27 全部', (chipsHtml.match(/data-drug="/g) || []).length, 30);
 
 clearAll(); setPatient({ bw: 1200, days: 3, ga: 28 });
-clickQuick('Ampicillin');
-has('快速加入 Ampicillin（預設 Usual）', text('abxResult'), 'Ampicillin', 'Usual', '60 mg q12h');
-clickQuick('Gentamicin');
-has('快速加入 Gentamicin（預設 ODD）', text('abxResult'), 'Gentamicin', '(ODD)');
-clickQuick('Cefotaxime (Claforan)');
-has('快速加入 Cefotaxime（預設 sepsis）', text('abxResult'), 'Cefotaxime (Claforan)', 'sepsis');
-is('三張卡', (text('abxResult').match(/計算過程/g) || []).length, 3);
-clickQuick('Ampicillin');
-is('重複快速加入不會變成兩張', (text('abxResult').match(/Ampicillin/g) || []).length, 1);
-is('非快速加入按鈕的點擊不觸發', (quick._h.click({ target: { getAttribute: () => null } }), true), true);
+clickChip('Ampicillin');
+has('點 chip 直接加入（帶預設用法）', text('abxResult'), 'Ampicillin', 'Usual', '60 mg q12h');
+clickChip('Gentamicin');
+clickChip('Cefotaxime (Claforan)');
+is('三下點出三張卡', (text('abxResult').match(/計算過程/g) || []).length, 3);
+clickChip('Ampicillin');
+is('重複點同一個 chip 不會變成兩張', (text('abxResult').match(/Ampicillin/g) || []).length, 1);
+is('點到非 chip 區域不觸發', ($('abxChips')._h.click({ target: { getAttribute: () => null } }), true), true);
+
+// 卡片上切換適應症
+clearAll(); setPatient({ bw: 2500, days: 3 });
+clickChip('Cefotaxime (Claforan)');
+has('預設 sepsis dose', text('abxResult'), '50 mg/kg/dose', '125 mg q12h');
+setCardVariant(0, 'meningitis');
+has('卡片上切成 meningitis 後劑量跟著變', text('abxResult'), '100 mg/kg/dose', '250 mg q12h');
+is('切換後仍只有一張卡', (text('abxResult').match(/計算過程/g) || []).length, 1);
 
 console.log(`\n通過 ${pass} ／ 失敗 ${fail}`);
 process.exit(fail ? 1 : 0);
