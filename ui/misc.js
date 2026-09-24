@@ -64,15 +64,16 @@
           + '</div></div>';
       }).join('<div class="h-1"></div>');
 
-      var extra = [];
-      if (drug.timing) extra.push('Timing：' + drug.timing);
-      (drug.constraints || []).forEach(function (c) { extra.push(c); });
-      if (drug.levels) extra.push('有效血中濃度 ' + drug.levels.therapeutic + '　Toxic ' + drug.levels.toxic);
-      (drug.notes || []).forEach(function (n) { extra.push(n); });
-      var extraHtml = extra.length
-        ? '<div class="mt-1 space-y-0.5">' + extra.map(function (t) {
-            return '<div class="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded px-3 py-1.5">' + esc(t) + '</div>';
-          }).join('') + '</div>' : '';
+      // 給藥指引與其他分頁統一收在可展開區塊；toxic level 屬警告性質
+      var guide = { notes: [], cautions: [] };
+      if (drug.timing) guide.notes.push('Timing：' + drug.timing);
+      (drug.constraints || []).forEach(function (c) { guide.notes.push(c); });
+      if (drug.levels) {
+        guide.notes.push('有效血中濃度 ' + drug.levels.therapeutic);
+        guide.cautions.push('Toxic level ' + drug.levels.toxic);
+      }
+      (drug.notes || []).forEach(function (n) { guide.notes.push(n); });
+      var extraHtml = R.guideHtml(guide);
 
       box.innerHTML = '<div class="border-t border-gray-300 pt-2 mt-2">'
         + '<div class="text-sm text-gray-600 mb-1"><span class="font-bold text-gray-800">' + esc(drug.name) + '</span>'
@@ -106,9 +107,10 @@
         low:   ['bg-red-100 border-red-300 text-red-900', '❌', '低於本表下限'],
       }[r.verdict];
       var dev = r.deviation ? '（' + (r.deviation > 0 ? '+' : '') + Math.round(r.deviation) + '%）' : '';
-      box.innerHTML = '<div class="rounded border px-3 py-2.5 text-center ' + map[0] + '">'
-        + '<div class="text-base font-bold">' + map[1] + ' ' + map[2] + ' ' + dev + '</div>'
-        + '<div class="text-sm opacity-80 mt-1">' + esc(r.row.label) + ' 本表每劑 ' + range(r.row.min, r.row.max)
+      box.innerHTML = '<div class="rounded-lg border px-3 py-2.5 ' + map[0] + '">'
+        + '<div class="text-center text-base font-bold">' + map[1] + ' ' + map[2] + ' ' + dev + '</div>'
+        + R.rangeBarHtml(r.row.min, r.row.max, r.ordered, r.row.unit)
+        + '<div class="text-center text-sm opacity-80 mt-1">' + esc(r.row.label) + ' 本表每劑 ' + range(r.row.min, r.row.max)
         + ' ' + esc(r.row.unit) + '　你輸入 ' + fmt(r.ordered) + ' ' + esc(r.row.unit) + '</div></div>';
     }
 

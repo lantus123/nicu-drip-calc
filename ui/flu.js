@@ -71,23 +71,28 @@
           + '</div></div>';
       }).join('<div class="h-1"></div>');
 
+      // 給藥指引（可展開）：怎麼給
+      var guide = { notes: [], cautions: [] };
+      if (out.frequency) guide.notes.push('給藥頻次：' + out.frequency + '，IVD ' + out.infusionMinutes + ' 分鐘');
+      if (out.duration) guide.notes.push('Minimum duration of therapy：' + out.duration);
+      if (out.mode === 'indication') guide.notes.push(D.neonateUnder14d);
+      (D.administration.notes || []).forEach(function (n) { guide.notes.push(n); });
+      (D.administration.cautions || []).forEach(function (c) { guide.cautions.push(c); });
+
+      // 警示（常駐）：來源本身的缺陷與會影響劑量的判讀，不可收合
+      // interval 依據與進位那一步已在計算過程中呈現，不在此重複
       var notes = [];
-      if (out.bandLabel) notes.push('依 ' + out.bandLabel + ' → interval ' + out.interval);
       if (out.gaWordingNote) notes.push(out.gaWordingNote);
-      if (out.frequency) notes.push('給藥頻次：' + out.frequency + '，IVD ' + out.infusionMinutes + ' 分鐘');
-      if (out.roundUpBasis) notes.push('劑量可無條件進位至整數（' + out.roundUpBasis + '）');
-      if (out.duration) notes.push('Minimum duration of therapy：' + out.duration);
       if (out.spanned) notes.push('原表此列 Day 1 與 Daily therapy 為合併儲存格，兩者同劑量');
       if (out.incomplete) notes.push('原表此列缺 Daily therapy 與 duration，僅能提供 Day 1');
       if (out.renalNote) notes.push(out.renalNote);
-      if (out.mode === 'indication') notes.push(D.neonateUnder14d);
-      D.administration.warnings.forEach(function (w) { notes.push(w); });
 
       box.innerHTML = '<div class="border-t border-gray-300 pt-2 mt-2">'
         + '<div class="text-sm text-gray-600 mb-1"><span class="font-bold text-gray-800">' + esc(D.drug) + '</span>'
         + (out.indication ? ' · ' + esc(out.indication.name) : '') + '</div>'
         + rowsHtml
         + R.stepsHtml(L.explain(D, out, w))
+        + R.guideHtml(guide)
         + '<div class="mt-3 space-y-1">' + notes.map(function (t) {
             return '<div class="text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded px-3 py-1.5">' + esc(t) + '</div>';
           }).join('') + '</div>'
@@ -118,9 +123,10 @@
         low:   ['bg-red-100 border-red-300 text-red-900', '❌', '低於本表下限'],
       }[r.verdict];
       var dev = r.deviation ? '（' + (r.deviation > 0 ? '+' : '') + Math.round(r.deviation) + '%）' : '';
-      box.innerHTML = '<div class="rounded border px-3 py-2.5 text-center ' + map[0] + '">'
-        + '<div class="text-base font-bold">' + map[1] + ' ' + map[2] + ' ' + dev + '</div>'
-        + '<div class="text-sm opacity-80 mt-1">' + esc(r.row.label) + ' 本表每劑 ' + range(r.row.amount.min, r.row.amount.max)
+      box.innerHTML = '<div class="rounded-lg border px-3 py-2.5 ' + map[0] + '">'
+        + '<div class="text-center text-base font-bold">' + map[1] + ' ' + map[2] + ' ' + dev + '</div>'
+        + R.rangeBarHtml(r.row.amount.min, r.row.amount.max, r.ordered, 'mg')
+        + '<div class="text-center text-sm opacity-80 mt-1">' + esc(r.row.label) + ' 本表每劑 ' + range(r.row.amount.min, r.row.amount.max)
         + ' mg　你輸入 ' + fmt(r.ordered) + ' mg</div></div>';
     }
 

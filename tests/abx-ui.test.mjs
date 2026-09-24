@@ -184,5 +184,7 @@ has('d7 正好在日齡分界上會提醒', run({ drug: 'Cefazolin', bw: 2500, d
 has('一般情況不出現分界提醒',
   run({ drug: 'Cefazolin', bw: 2500, days: 3 }).includes('分界') ? 'HAS' : 'NONE', 'NONE');
 
+has('覆核附上劑量範圍帶', review(0, 250), '建議 125 mg', '312.5');
+
 console.log(`\n通過 ${pass} ／ 失敗 ${fail}`);
 process.exit(fail ? 1 : 0);

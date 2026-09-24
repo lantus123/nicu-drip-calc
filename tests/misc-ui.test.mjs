@@ -102,5 +102,8 @@ has('沒填體重時只給錯誤訊息', run('curosurf', ''), '請輸入體重')
 has('沒填體重時不顯示空的計算過程',
   run('curosurf', '').includes('計算過程') ? 'HAS' : 'NONE', 'NONE');
 
+run('caffeine_citrate', 1200);
+has('覆核附上劑量範圍帶', review('Maintenance', 24), '建議 6~12 mg');
+
 console.log(`\n通過 ${pass} ／ 失敗 ${fail}`);
 process.exit(fail ? 1 : 0);

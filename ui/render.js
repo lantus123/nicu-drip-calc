@@ -78,5 +78,40 @@
       + '</div></details>';
   }
 
-  root.UiRender = { esc: esc, stepsHtml: stepsHtml, guideHtml: guideHtml, bandTableHtml: bandTableHtml };
+  // 劑量範圍帶：把「差多少、離邊界多近」畫出來，而不只給一個百分比
+  // min/max = 本表建議範圍；value = 醫師輸入值（可省略）
+  function rangeBarHtml(min, max, value, unit) {
+    if (!(max > 0)) return '';
+    var hasVal = typeof value === 'number' && !isNaN(value) && value > 0;
+    // 讓建議範圍與輸入值都落在畫面內，並留一點餘裕
+    var top = Math.max(max, hasVal ? value : 0) * 1.25;
+    var pct = function (v) { return Math.max(0, Math.min(100, v / top * 100)); };
+    var left = pct(min), right = pct(max);
+    var width = Math.max(right - left, 1.5);   // 單點範圍也要看得見
+    var inRange = hasVal && value >= min && value <= max;
+
+    var marker = '';
+    if (hasVal) {
+      var vp = pct(value);
+      marker = '<div class="absolute -top-1 h-5 w-0.5 ' + (inRange ? 'bg-green-700' : 'bg-red-600')
+        + '" style="left:' + vp + '%"></div>'
+        + '<div class="absolute top-5 -translate-x-1/2 whitespace-nowrap text-xs font-bold '
+        + (inRange ? 'text-green-800' : 'text-red-700') + '" style="left:' + vp + '%">'
+        + (Math.round(value * 100) / 100) + '</div>';
+    }
+    var fmt = function (n) { return Math.round(n * 100) / 100; };
+    return '<div class="mt-2 pb-5">'
+      + '<div class="relative h-3 w-full rounded bg-gray-200">'
+      +   '<div class="absolute h-3 rounded bg-green-400" style="left:' + left + '%;width:' + width + '%"></div>'
+      +   marker
+      + '</div>'
+      + '<div class="mt-1 flex justify-between text-xs text-gray-500">'
+      +   '<span>0</span>'
+      +   '<span class="text-green-800">建議 ' + (min === max ? fmt(min) : fmt(min) + '~' + fmt(max)) + (unit ? ' ' + esc(unit) : '') + '</span>'
+      +   '<span>' + fmt(top) + '</span>'
+      + '</div></div>';
+  }
+
+  root.UiRender = { esc: esc, stepsHtml: stepsHtml, guideHtml: guideHtml,
+                    bandTableHtml: bandTableHtml, rangeBarHtml: rangeBarHtml };
 }(typeof self !== 'undefined' ? self : this));

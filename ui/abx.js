@@ -169,9 +169,10 @@ document.addEventListener('DOMContentLoaded', function () {
     var dev = v.deviation ? '（' + (v.deviation > 0 ? '+' : '') + Math.round(v.deviation) + '%）' : '';
     var iv = v.intervalMatch === false
       ? '<div class="mt-1 text-sm">⚠ Interval 不符：本表為 <b>' + esc(v.expectedInterval) + '</b></div>' : '';
-    return '<div class="mt-2 rounded-lg border px-3 py-2 text-center ' + map[0] + '">'
-      + '<div class="text-base font-bold">' + map[1] + ' ' + map[2] + ' ' + dev + '</div>'
-      + '<div class="mt-1 text-sm opacity-80">本表每劑 ' + range(v.perDose.min, v.perDose.max) + ' ' + esc(v.perDose.unit)
+    return '<div class="mt-2 rounded-lg border px-3 py-2 ' + map[0] + '">'
+      + '<div class="text-center text-base font-bold">' + map[1] + ' ' + map[2] + ' ' + dev + '</div>'
+      + R.rangeBarHtml(v.perDose.min, v.perDose.max, v.ordered, v.perDose.unit)
+      + '<div class="text-center text-sm opacity-80">本表每劑 ' + range(v.perDose.min, v.perDose.max) + ' ' + esc(v.perDose.unit)
       + ' ' + esc(v.perDose.interval) + '　你輸入 ' + fmt(v.ordered) + ' ' + esc(v.perDose.unit) + '</div>' + iv + '</div>';
   }
 

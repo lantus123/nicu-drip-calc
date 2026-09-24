@@ -49,7 +49,8 @@
     renal: { ccrThreshold: 50, factor: 0.5, note: "CCr < 50：給予建議劑量的 50%", hemodialysis: "血液透析：每次透析後給一次建議劑量" },
     administration: {
       ivMinHours: 2, maxRateMgPerHour: 200, maxConcentration: 2, concUnit: "mg/mL",
-      warnings: ["不可 IM／IVP", "口服與靜脈劑量相同"]
+      notes: ["口服與靜脈劑量相同"],
+      cautions: ["不可 IM／IVP"]
     }
   };
 }));

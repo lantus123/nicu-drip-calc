@@ -159,8 +159,16 @@ interval 超過 24 小時者（q36h／q48h）標示為「平均每日」而非�
 
 呈現元件集中在 `ui/render.js`，調整計算過程或指引的版面只需要改這一個檔案。
 
-「給藥指引」另外收合呈現，只放來源文件明載的中性給藥事實（稀釋、輸注時間、
-途徑限制、已知不良反應），資料在 `data/abx-admin.js`，與程式產生的劑量資料分開。
+「給藥指引」另外收合呈現，**四個分頁統一格式**，只放來源文件明載的中性給藥事實
+（稀釋、輸注時間、途徑限制、血中濃度、已知不良反應）。說明與警告分開，警告以紅底標示
+（例如 Fluconazole 的「不可 IM／IVP」是警告，「口服與靜脈劑量相同」是說明）。
+抗生素的指引資料在 `data/abx-admin.js`，與程式產生的劑量資料分開。
+
+會影響劑量正確性的事項**不收合**，常駐顯示為警示列 —— 例如來源表格的合併儲存格、
+缺漏欄位、GA 分界判讀、腎功能調整。
+
+**劑量範圍帶**：覆核結果附一條帶子，畫出建議範圍與你輸入的值落在哪裡。
+只給百分比看不出離邊界多近，畫出來才知道。
 
 ## 開發
 
@@ -184,15 +192,15 @@ tests/              node 原生執行，無相依套件
 
 顯示的數值一律四捨五入至**小數第 2 位**（例：1.25 mL/kg × 1.5 kg = 1.875 → 顯示 1.88 mL）。
 
-測試（共 273 項）：
+測試（共 277 項）：
 
 ```bash
 node tests/abx.test.mjs       # 抗生素資料 + 選格 + 覆核 + 分界（60）
-node tests/abx-ui.test.mjs    # 抗生素分頁端到端＋計算過程＋多選＋來源對照（45）
+node tests/abx-ui.test.mjs    # 抗生素分頁端到端＋計算過程＋多選＋來源對照（46）
 node tests/misc.test.mjs      # 其他藥物資料 + 換算（30）
-node tests/misc-ui.test.mjs   # 其他藥物分頁端到端＋計算過程（23）
+node tests/misc-ui.test.mjs   # 其他藥物分頁端到端＋計算過程（24）
 node tests/flu.test.mjs       # Fluconazole 資料 + 換算 + 腎調整（48）
-node tests/flu-ui.test.mjs    # Fluconazole 分頁端到端＋計算過程（24）
+node tests/flu-ui.test.mjs    # Fluconazole 分頁端到端＋計算過程（26）
 node tests/patient.test.mjs   # 病人資料與體重規則（15）
 node tests/wiring.test.mjs    # DOM 接線靜態檢查（8）
 node tests/html-scripts.test.mjs # 腳本外置與可解析性（20）

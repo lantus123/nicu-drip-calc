@@ -79,9 +79,11 @@ is('適應症模式顯示適應症', hidden('fluIndicationWrap'), false);
 
 has('治療 1kg GA28 d10 → loading 12~25、maintenance 12 q48h',
   run({ mode: 'treatment', w: 1000, ga: 28, pna: 10 }),
-  'Loading', '12~25 mg', 'Maintenance', '12 mg q48h', 'interval q48h');
+  'Loading', '12~25 mg', 'Maintenance', '12 mg q48h',
+  'interval GA <30 週，日齡 0-14 天 q48h');   // interval 依據現在列在計算過程表內
 has('治療顯示 GA 判讀說明', text('fluResult'), '≦GA29wk', 'GA 30 週為分界');
-has('治療顯示輸注限制', text('fluResult'), 'mL', '至少輸注', '不可 IM／IVP');
+has('治療顯示輸注限制', text('fluResult'), 'mL', '至少輸注');
+has('給藥指引分出說明與警告', text('fluResult'), '給藥指引', '口服與靜脈劑量相同', '⚠ 不可 IM／IVP');
 has('GA32 d10 → q24h', run({ mode: 'treatment', w: 2000, ga: 32, pna: 10 }), 'q24h');
 has('GA29+5 走 <30 規則 → q48h', run({ mode: 'treatment', w: 1000, ga: 29.7, pna: 10 }), 'q48h');
 has('缺 GA → 拒答', run({ mode: 'treatment', w: 1000, pna: 10 }), '請輸入出生 GA');
@@ -120,6 +122,9 @@ has('預防模式顯示進位那一步',
   run({ mode: 'prophylaxis', w: 1100 }), '3 mg/kg × 1.1 kg', '3.3 mg', '無條件進位', '4 mg');
 has('600 mg 級距改由輸注速率決定最短時間',
   run({ mode: 'indication', w: 50000, indication: 'systemic' }), '200 mg/hr');
+
+run({ mode: 'treatment', w: 1000, ga: 28, pna: 10 });
+has('覆核附上劑量範圍帶', review('Loading', 30), '建議 12~25 mg');
 
 console.log(`\n通過 ${pass} ／ 失敗 ${fail}`);
 process.exit(fail ? 1 : 0);
