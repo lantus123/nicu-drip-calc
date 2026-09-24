@@ -112,6 +112,63 @@
       + '</div></div>';
   }
 
+  // 完整劑量表：以本表數值自行渲染，把目前選中的藥與格子標出來。
+  // 版面為本工具自訂，非重製來源文件的排版。
+  // active: { 藥品id: 使用中的 bandId }
+  function fullTableHtml(data, active, openByDefault) {
+    active = active || {};
+    var bands = data.bands;
+    var groups = [];
+    bands.forEach(function (b) {
+      var last = groups[groups.length - 1];
+      if (last && last.weight === b.weight) last.span += 1;
+      else groups.push({ weight: b.weight, span: 1 });
+    });
+    var th = 'border border-gray-200 px-2 py-1 text-center text-xs font-semibold text-gray-600 bg-gray-100';
+    var stick = 'tbl-sticky border border-gray-200 px-2 py-1 text-left text-xs font-semibold text-gray-600 bg-gray-100';
+    var head = '<thead><tr><th rowspan="2" class="' + stick + '">藥品</th>'
+      + groups.map(function (g) { return '<th colspan="' + g.span + '" class="' + th + '">' + esc(g.weight) + '</th>'; }).join('')
+      + '</tr><tr>'
+      + bands.map(function (b) { return '<th class="' + th + ' font-normal">' + esc(b.age) + '</th>'; }).join('')
+      + '</tr></thead>';
+
+    var body = data.drugs.map(function (d) {
+      var activeBand = active[d.id];
+      var on = activeBand !== undefined;
+      var label = esc(d.name)
+        + (d.indication || d.regimen ? ' <span class="text-gray-400">(' + esc(d.indication || d.regimen) + ')</span>' : '')
+        + (d.route ? '<div class="text-xs text-gray-400">' + esc(d.route) + '</div>' : '');
+      var cells;
+      if (d.freeText && !d.doses[bands[0].id]) {
+        cells = '<td colspan="' + bands.length + '" class="border border-gray-200 px-2 py-1 text-xs text-gray-500">' + esc(d.freeText) + '</td>';
+      } else {
+        cells = bands.map(function (b) {
+          var v = d.doses[b.id];
+          var hit = b.id === activeBand;
+          return '<td class="border px-2 py-1 text-center text-xs whitespace-nowrap '
+            + (hit ? 'border-cyan-500 bg-cyan-100 font-bold text-cyan-900 ring-2 ring-inset ring-cyan-500'
+                   : 'border-gray-200 ' + (v == null ? 'text-gray-300' : (on ? 'text-gray-700' : 'text-gray-400')))
+            + '">' + (v == null ? '—' : esc(v)) + '</td>';
+        }).join('');
+      }
+      return '<tr class="' + (on ? 'bg-cyan-50/60' : '') + '">'
+        + '<td class="tbl-sticky border border-gray-200 px-2 py-1 text-sm '
+        + (on ? 'bg-cyan-50 font-bold text-gray-900' : 'bg-white text-gray-500') + '">' + label + '</td>'
+        + cells + '</tr>';
+    }).join('');
+
+    var n = Object.keys(active).length;
+    return '<details class="mt-4"' + (openByDefault ? ' open' : '') + '>'
+      + '<summary class="text-sm font-semibold text-cyan-700 cursor-pointer select-none hover:underline">'
+      + '完整劑量表（' + data.drugs.length + ' 列'
+      + (n ? '，已標出選用的 ' + n + ' 格' : '') + '）</summary>'
+      + '<div class="mt-2 overflow-x-auto rounded-lg border border-gray-200">'
+      + '<table class="w-full border-collapse">' + head + '<tbody>' + body + '</tbody></table></div>'
+      + '<div class="mt-1 text-xs text-gray-400">' + esc(data.source) + '</div>'
+      + '</details>';
+  }
+
   root.UiRender = { esc: esc, stepsHtml: stepsHtml, guideHtml: guideHtml,
-                    bandTableHtml: bandTableHtml, rangeBarHtml: rangeBarHtml };
+                    bandTableHtml: bandTableHtml, rangeBarHtml: rangeBarHtml,
+                    fullTableHtml: fullTableHtml };
 }(typeof self !== 'undefined' ? self : this));

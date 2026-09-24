@@ -30,6 +30,8 @@
     .btn:active { transform: scale(0.98); }
     /* 計算過程表格：等寬數字讓上下對齊，便於逐行驗算 */
     .steps { font-variant-numeric: tabular-nums; }
+    /* 完整劑量表：橫向捲動時固定藥名欄 */
+    .tbl-sticky { position: sticky; left: 0; z-index: 1; }
   </style>
 </head>
 <body class="bg-white text-gray-800">
@@ -155,6 +157,9 @@
 
       <!-- 每種選入的藥各一張卡：劑量、計算過程、給藥指引、覆核 -->
       <div id="abxResult" class="mt-4 hidden"></div>
+
+      <!-- 完整劑量表：所有選入的藥會在此同時標出用了哪一格 -->
+      <div id="abxFullTable"></div>
     </div>
 
     <!-- ───────── Surfactant / AOP / PDA ───────── -->

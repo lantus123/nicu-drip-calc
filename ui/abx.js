@@ -69,9 +69,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function renderAll() {
     var box = $('abxResult');
-    if (!selected.length) { box.classList.add('hidden'); box.innerHTML = ''; return; }
-    box.classList.remove('hidden');
-    box.innerHTML = selected.map(cardHtml).join('');
+    if (!selected.length) { box.classList.add('hidden'); box.innerHTML = ''; }
+    else { box.classList.remove('hidden'); box.innerHTML = selected.map(cardHtml).join(''); }
+    renderFullTable();
+  }
+
+  // 完整劑量表：把所有選入的藥目前用的格子一併標出
+  function renderFullTable() {
+    var pt = P.read(), ew = P.effectiveWeight(pt), active = {};
+    if (ew.g) {
+      var sel = L.selectBand(ew.g, pt.ageDays);
+      if (!sel.error) selected.forEach(function (d) {
+        var res = L.resolveDose(d, sel, { hasLevels: $('abxHasLevels').checked });
+        if (res.ok || d.doses[sel.band] != null) active[d.id] = sel.band;
+      });
+    }
+    $('abxFullTable').innerHTML = R.fullTableHtml(D, active, false);
   }
 
   function cardHtml(drug, idx) {
@@ -197,6 +210,8 @@ document.addEventListener('DOMContentLoaded', function () {
       renderAll();
     }
   });
+
+  renderFullTable();
 
   $('abxDataVersion').textContent = D.dataVersion;
   $('abxSource').textContent = D.source;

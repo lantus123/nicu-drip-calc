@@ -186,5 +186,25 @@ has('一般情況不出現分界提醒',
 
 has('覆核附上劑量範圍帶', review(0, 250), '建議 125 mg', '312.5');
 
+// ── 完整劑量表（2026-09-24 新增）──────────────────────
+const fullText = () => $('abxFullTable').innerHTML.replace(/<[^>]+>/g, ' ')
+  .replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
+clearAll();
+has('未選藥時仍可瀏覽整張表', fullText(), '完整劑量表（29 列）', 'Amikacin', 'Teicoplanin');
+has('自由文字用法以整列呈現', fullText(), 'For intact renal function', 'same as for piperacillin');
+has('無建議劑量顯示破折號', fullText(), '—');
+setPatient({ bw: 2500, days: 3 });
+addDrug('Cefazolin');
+has('選藥後標出格數', fullText(), '已標出選用的 1 格');
+is('高亮一格', ($('abxFullTable').innerHTML.match(/ring-cyan-500/g) || []).length, 1);
+addDrug('Cefepime'); addDrug('Clindamycin');
+has('多選時同時標出多格', fullText(), '已標出選用的 3 格');
+is('高亮三格', ($('abxFullTable').innerHTML.match(/ring-cyan-500/g) || []).length, 3);
+$('pBirthWeight').value = '1000'; $('pBirthWeight')._h.change();
+has('改體重後整張表的標記跟著移動', fullText(), '已標出選用的 3 格');
+clearAll();
+has('清空後標記消失', fullText(), '完整劑量表（29 列）');
+has('表格附出處', fullText(), 'Remington');
+
 console.log(`\n通過 ${pass} ／ 失敗 ${fail}`);
 process.exit(fail ? 1 : 0);
